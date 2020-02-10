@@ -1968,7 +1968,93 @@ scene_props = [
    check_ladder_animation_finish_trigger,
   ]),  
 
-  ("portcullis",sokf_moveable,"portcullis_a","bo_portcullis_a", []),
+  ("portcullis",sokf_moveable|sokf_show_hit_point_bar|sokf_destructible,"portcullis_a","bo_portcullis_a", [
+    check_sally_door_use_trigger_double,
+
+   (ti_on_init_scene_prop,
+    [
+      (store_trigger_param_1, ":instance_no"),
+      (scene_prop_set_hit_points, ":instance_no", 200),
+    ]),
+     
+   (ti_on_scene_prop_destroy,
+    [
+      (play_sound, "snd_dummy_destroyed"),
+      
+      (assign, ":rotate_side", 86),
+      
+      (try_begin),
+        (this_or_next|multiplayer_is_server),
+    (neg|game_in_multiplayer_mode),
+
+        (store_trigger_param_1, ":instance_no"),      
+        (store_trigger_param_2, ":attacker_agent_no"),
+
+        (set_fixed_point_multiplier, 100),
+        (prop_instance_get_position, pos1, ":instance_no"),
+
+        (try_begin),
+          (ge, ":attacker_agent_no", 0),
+          (agent_get_position, pos2, ":attacker_agent_no"),
+          (try_begin),
+            (position_is_behind_position, pos2, pos1),
+            (val_mul, ":rotate_side", -1),
+          (try_end),
+        (try_end),
+      
+        (init_position, pos3),
+
+        (try_begin),
+          (ge, ":rotate_side", 0),
+          (position_move_y, pos3, -100),
+        (else_try),
+          (position_move_y, pos3, 100),
+        (try_end),
+      
+        (position_move_x, pos3, -50),
+        (position_transform_position_to_parent, pos4, pos1, pos3),
+        (position_move_z, pos4, 100),
+        (position_get_distance_to_ground_level, ":height_to_terrain", pos4),
+        (val_sub, ":height_to_terrain", 100),
+        (assign, ":z_difference", ":height_to_terrain"),
+        (val_div, ":z_difference", 3),
+
+        (try_begin),
+          (ge, ":rotate_side", 0),
+          (val_add, ":rotate_side", ":z_difference"),
+        (else_try),
+          (val_sub, ":rotate_side", ":z_difference"),
+        (try_end),
+
+        (position_rotate_x, pos1, ":rotate_side"),
+        (prop_instance_animate_to_position, ":instance_no", pos1, 70), #animate to position 1 in 0.7 second
+      (try_end),
+    ]),       
+
+    (ti_on_scene_prop_hit,
+    [
+      (store_trigger_param_1, ":instance_no"),       
+      (store_trigger_param_2, ":damage"),
+      
+      (try_begin),
+        (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
+        (val_sub, ":hit_points", ":damage"),
+        (gt, ":hit_points", 0),
+        (play_sound, "snd_dummy_hit"),
+      (else_try),
+        (neg|multiplayer_is_server),
+        (play_sound, "snd_dummy_destroyed"),
+      (try_end),
+
+      (try_begin),
+        (this_or_next|multiplayer_is_server),
+    (neg|game_in_multiplayer_mode),
+
+        (particle_system_burst, "psys_dummy_smoke", pos1, 3),
+        (particle_system_burst, "psys_dummy_straw", pos1, 10),
+      (try_end),      
+    ]),
+  ]),
   ("bed_a",0,"bed_a","bo_bed_a", []),
   ("bed_b",0,"bed_b","bo_bed_b", []),
   ("bed_c",0,"bed_c","bo_bed_c", []),
@@ -3638,17 +3724,62 @@ scene_props = [
       (store_trigger_param_1, ":instance_no"),
       (scene_prop_set_hit_points, ":instance_no", 300),
     ]),
-    
+    # Trigger Param 1: prop instance number
+    # Trigger Param 2: hit damage
+    # Position Register 1: Hit Position
+    # Position Register 2: x holds attacker agent id
      (ti_on_scene_prop_hit,
     [
       (store_trigger_param_1, ":instance_no"),       
       (store_trigger_param_2, ":damage"),
-      
       (try_begin),
-        (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
-        (val_sub, ":hit_points", ":damage"),
-        (gt, ":hit_points", 0),
-        (play_sound, "snd_dummy_hit"),
+        (multiplayer_is_server),
+        #(scene_prop_get_instance, "$g_prison_cart_right_door", "spr_prison_cart_door_right", ":instance_no"),
+        (display_message, "@PROP HIT!"),
+		(call_script, "script_dy_get_friendly_total"),
+		(assign, ":friendly_total", reg22),
+		(store_div, ":half_friendly_total", ":friendly_total", 2),
+		(this_or_next|le, "$g_global_friendly_count",":half_friendly_total"),
+    (eq, "$g_global_alive_player_count", 0),
+        (set_fixed_point_multiplier, 1),
+        (try_begin), #Double non-players damage
+          (eq, "$g_global_alive_player_count", 0),
+          (val_mul, ":damage", 2),
+        (try_end),
+      (try_end),
+      (try_begin),
+        (try_begin),
+          (multiplayer_is_server),
+          (call_script, "script_dy_get_friendly_total"),
+          (assign, ":friendly_total", reg22),
+          (store_div, ":half_friendly_total", ":friendly_total", 2),
+          #(val_mul, ":friendly_total", 3),
+          (gt, "$g_global_friendly_count",":half_friendly_total"),
+      		  (try_begin),
+      			  (val_add, "$g_anti_cart_spam", 1), #anti cart spam variable 
+      			 (ge, "$g_anti_cart_spam", "$g_anti_cart_spam_count_max"), #anti cart spam variable 
+      			  (store_sub, ":left_to_spawn", "$g_global_friendly_count", ":half_friendly_total"),
+      			  (assign, reg22, 50),
+      			  (assign, reg23, ":left_to_spawn"),
+      			  #(assign, reg24, ":friendly_total"),
+      			  (str_store_string, s10, "str_cart_can_destroy_reg22_percent_dead_reg23"),
+      			  #(str_store_string, s11, "str_cart_current_alive_reg23_total_reg24"),
+      			  (get_max_players, ":num_players"),  #Broadcast to all players  
+      			  (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+      				 (player_is_active, ":player_no"),
+      				 (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+      				 #(multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s11), 
+      			  (try_end),
+      			  (assign, "$g_anti_cart_spam", 0), #anti cart spam variable 
+      		  (try_end),
+          (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
+          (scene_prop_set_hit_points, ":instance_no", 300),
+        (else_try),
+          (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
+          (val_sub, ":hit_points", ":damage"),
+          (gt, ":hit_points", 0),
+          (play_sound, "snd_dummy_hit"),
+        (try_end),
       (else_try),
         (neg|multiplayer_is_server),
         (play_sound, "snd_dummy_destroyed"),
@@ -3663,6 +3794,27 @@ scene_props = [
         (set_fixed_point_multiplier, 1),        
       (try_end),        
     ]),
+
+    (ti_on_scene_prop_destroy,
+    [
+      (try_begin),
+        (multiplayer_is_server),
+        (store_trigger_param_1, ":instance_no"),      
+        (store_trigger_param_2, ":attacker_agent_no"),
+        (neg|agent_is_non_player, ":attacker_agent_no"),
+        (agent_is_alive, ":attacker_agent_no"),
+        (agent_get_player_id, ":user_player", ":attacker_agent_no"),
+        (str_store_player_username, s27, ":user_player"),
+        (str_store_string, s10, "str_s27_destroyed_cart"),
+        (get_max_players, ":num_players"),  #Broadcast to all players  
+        (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+         (player_is_active, ":player_no"),
+         (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+        (try_end),
+      (try_end),
+    ]),  
  ]), # added blank prop_hit trigger so hit point bar is displayed
   
 ("prison_cart_door_left", sokf_show_hit_point_bar|sokf_destructible|sokf_moveable,"prison_cart_door_left","bo_prison_cart_door_left",
@@ -3677,12 +3829,54 @@ scene_props = [
     [
       (store_trigger_param_1, ":instance_no"),       
       (store_trigger_param_2, ":damage"),
-      
       (try_begin),
-        (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
-        (val_sub, ":hit_points", ":damage"),
-        (gt, ":hit_points", 0),
-        (play_sound, "snd_dummy_hit"),
+        (multiplayer_is_server),
+        #(scene_prop_get_instance, "$g_prison_cart_right_door", "spr_prison_cart_door_right", ":instance_no"),
+        (display_message, "@PROP HIT!"),
+		(call_script, "script_dy_get_friendly_total"),
+		(assign, ":friendly_total", reg22),
+		(store_div, ":half_friendly_total", ":friendly_total", 2),
+		(this_or_next|le, "$g_global_friendly_count",":half_friendly_total"),
+    (eq, "$g_global_alive_player_count", 0),
+        (set_fixed_point_multiplier, 1),
+        (try_begin), #Double non-players damage
+          (eq, "$g_global_alive_player_count", 0),
+          (val_mul, ":damage", 2),
+        (try_end),
+      (try_end),
+      (try_begin),
+        (try_begin),
+          (multiplayer_is_server),
+          (call_script, "script_dy_get_friendly_total"),
+          (assign, ":friendly_total", reg22),
+          (store_div, ":half_friendly_total", ":friendly_total", 2),
+          #(val_mul, ":friendly_total", 3),
+          (gt, "$g_global_friendly_count",":half_friendly_total"),
+		 (try_begin),
+			 (val_add, "$g_anti_cart_spam", 1), #anti cart spam variable 
+			 (ge, "$g_anti_cart_spam", "$g_anti_cart_spam_count_max"), #anti cart spam variable 
+			  (store_sub, ":left_to_spawn", "$g_global_friendly_count", ":half_friendly_total"),
+			  (assign, reg22, 50),
+			  (assign, reg23, ":left_to_spawn"),
+			  #(assign, reg24, ":friendly_total"),
+			  (str_store_string, s10, "str_cart_can_destroy_reg22_percent_dead_reg23"),
+			  #(str_store_string, s11, "str_cart_current_alive_reg23_total_reg24"),
+			  (get_max_players, ":num_players"),  #Broadcast to all players  
+			  (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+				 (player_is_active, ":player_no"),
+				 (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+				 #(multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s11), 
+			  (try_end),
+			  (assign, "$g_anti_cart_spam", 0), #anti cart spam variable 
+		 (try_end),
+          (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
+          (scene_prop_set_hit_points, ":instance_no", 300),
+        (else_try),
+          (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
+          (val_sub, ":hit_points", ":damage"),
+          (gt, ":hit_points", 0),
+          (play_sound, "snd_dummy_hit"),
+        (try_end),
       (else_try),
         (neg|multiplayer_is_server),
         (play_sound, "snd_dummy_destroyed"),
@@ -3696,7 +3890,28 @@ scene_props = [
         (particle_system_burst, "psys_dummy_straw", pos1, 10),
         (set_fixed_point_multiplier, 1),        
       (try_end),        
-    ]),    
+    ]),
+
+    (ti_on_scene_prop_destroy,
+    [
+      (try_begin),
+        (multiplayer_is_server),
+        (store_trigger_param_1, ":instance_no"),      
+        (store_trigger_param_2, ":attacker_agent_no"),
+        (neg|agent_is_non_player, ":attacker_agent_no"),
+        (agent_is_alive, ":attacker_agent_no"),
+        (agent_get_player_id, ":user_player", ":attacker_agent_no"),
+        (str_store_player_username, s27, ":user_player"),
+        (str_store_string, s10, "str_s27_destroyed_cart"),
+        (get_max_players, ":num_players"),  #Broadcast to all players  
+        (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+         (player_is_active, ":player_no"),
+         (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+        (try_end),
+      (try_end),
+    ]),          
  ]), # added blank prop_hit trigger so hit point bar is displayed
 	
 ]

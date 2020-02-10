@@ -11543,113 +11543,35 @@ mission_templates = [
 			(call_script, "script_multiplayer_server_on_agent_spawn_common", ":agent_no"),
 			(agent_get_team, ":agent_team_no", ":agent_no"),
 			(try_begin),
-        (eq, ":agent_team_no", 1), # enemy health
+        (eq, ":agent_team_no", 1), # enemies
         (eq, "$g_multiplayer_ccoop_wave_no", 30), # == wave 30
-        (agent_set_max_hit_points, ":agent_no", 250), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (agent_set_damage_modifier, ":agent_no", 150), # default 130 (last modded was 170) BEFORE KEY MOD: 200
-        (try_begin),
-          #   (gt, "$g_total_team_1_players", 20),
-          #   (agent_set_max_hit_points, ":agent_no", 270), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-          #   (gt, "$g_total_team_1_players", 15),
-          #   (agent_set_max_hit_points, ":agent_no", 265), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-            (gt, "$g_total_team_1_players", 10),
-            (agent_set_max_hit_points, ":agent_no", 260), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          (else_try),
-            (gt, "$g_total_team_1_players", 5),
-            (agent_set_max_hit_points, ":agent_no", 255), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (try_end),
+        (agent_set_max_hit_points, ":agent_no", 380), # default 150 (last modded was 380) BEFORE KEY MOD: 425
+        (agent_set_damage_modifier, ":agent_no", 170), # default 130 (last modded was 170) BEFORE KEY MOD: 200
       (else_try),
         (eq, ":agent_team_no", 1), # enemies
         (eq, "$g_multiplayer_ccoop_wave_no", 20), # == wave 20
-        (agent_set_max_hit_points, ":agent_no", 180), # default 150 (last modded was 260) BEFORE KEY MOD: 325
-        (agent_set_damage_modifier, ":agent_no", 140), # default 130 (last modded was 160) BEFORE KEY MOD: 180
-        (try_begin),
-          #   (gt, "$g_total_team_1_players", 20),
-          #   (agent_set_max_hit_points, ":agent_no", 200), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-          #   (gt, "$g_total_team_1_players", 15),
-          #   (agent_set_max_hit_points, ":agent_no", 195), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-            (gt, "$g_total_team_1_players", 10),
-            (agent_set_max_hit_points, ":agent_no", 190), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          (else_try),
-            (gt, "$g_total_team_1_players", 5),
-            (agent_set_max_hit_points, ":agent_no", 185), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (try_end),
+        (agent_set_max_hit_points, ":agent_no", 330), # default 150 (last modded was 260) BEFORE KEY MOD: 325
+        (agent_set_damage_modifier, ":agent_no", 160), # default 130 (last modded was 160) BEFORE KEY MOD: 180
       (else_try),
         (eq, ":agent_team_no", 1), # enemies
         (eq, "$g_multiplayer_ccoop_wave_no", 10), # == wave 10
-        (agent_set_max_hit_points, ":agent_no", 120), # default 150 (last modded was 210) BEFORE KEY MOD: 275
-        (agent_set_damage_modifier, ":agent_no", 120), # default 130 (last modded was 140) BEFORE KEY MOD: 160
-        (try_begin),
-          #   (gt, "$g_total_team_1_players", 20),
-          #   (agent_set_max_hit_points, ":agent_no", 140), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-          #   (gt, "$g_total_team_1_players", 15),
-          #   (agent_set_max_hit_points, ":agent_no", 135), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-            (gt, "$g_total_team_1_players", 10),
-            (agent_set_max_hit_points, ":agent_no", 130), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          (else_try),
-            (gt, "$g_total_team_1_players", 5),
-            (agent_set_max_hit_points, ":agent_no", 125), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (try_end),
+        (agent_set_max_hit_points, ":agent_no", 280), # default 150 (last modded was 210) BEFORE KEY MOD: 275
+        (agent_set_damage_modifier, ":agent_no", 140), # default 130 (last modded was 140) BEFORE KEY MOD: 160
       (else_try),
         (eq, ":agent_team_no", 1), # enemies
         (eq, "$g_multiplayer_ccoop_wave_no", 9), # == wave 9
-        (agent_set_max_hit_points, ":agent_no", 110), # default 150 (last modded was 200) BEFORE KEY MOD: 275
-        (agent_set_damage_modifier, ":agent_no", 115), # default 130 (last modded was 140) BEFORE KEY MOD: 160
-        (try_begin),
-          #   (gt, "$g_total_team_1_players", 20),
-          #   (agent_set_max_hit_points, ":agent_no", 130), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-          #   (gt, "$g_total_team_1_players", 15),
-          #   (agent_set_max_hit_points, ":agent_no", 125), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-            (gt, "$g_total_team_1_players", 10),
-            (agent_set_max_hit_points, ":agent_no", 120), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          (else_try),
-            (gt, "$g_total_team_1_players", 5),
-            (agent_set_max_hit_points, ":agent_no", 115), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (try_end),
+        (agent_set_max_hit_points, ":agent_no", 230), # default 150 (last modded was 200) BEFORE KEY MOD: 275
+        (agent_set_damage_modifier, ":agent_no", 140), # default 130 (last modded was 140) BEFORE KEY MOD: 160
       (else_try),
-			 (eq, ":agent_team_no", 1), # enemies
-			 (gt, "$g_multiplayer_ccoop_wave_no", 20), # wave++
-			 (agent_set_max_hit_points, ":agent_no", 190), # default 150 (last modded was 160)
-			 (agent_set_damage_modifier, ":agent_no", 145), # default 130 (last modded was 155)
-        (try_begin),
-          #   (gt, "$g_total_team_1_players", 20),
-          #   (agent_set_max_hit_points, ":agent_no", 215), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-          #   (gt, "$g_total_team_1_players", 15),
-          #   (agent_set_max_hit_points, ":agent_no", 205), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-            (gt, "$g_total_team_1_players", 10),
-            (agent_set_max_hit_points, ":agent_no", 200), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          (else_try),
-            (gt, "$g_total_team_1_players", 5),
-            (agent_set_max_hit_points, ":agent_no", 195), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (try_end),
+			(eq, ":agent_team_no", 1), # enemies
+			(gt, "$g_multiplayer_ccoop_wave_no", 20), # wave++
+			(agent_set_max_hit_points, ":agent_no", 330), # default 150 (last modded was 160)
+			(agent_set_damage_modifier, ":agent_no", 155), # default 130 (last modded was 155)
 		(else_try),
 			(eq, ":agent_team_no", 1), # enemies
 			(gt, "$g_multiplayer_ccoop_wave_no", 10), # wave+
-			(agent_set_max_hit_points, ":agent_no", 130), # default 175 (last modded was 235)
-			(agent_set_damage_modifier, ":agent_no", 125), # default 150 (last modded was 145)
-        (try_begin),
-          #   (gt, "$g_total_team_1_players", 20),
-          #   (agent_set_max_hit_points, ":agent_no", 150), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-          #   (gt, "$g_total_team_1_players", 15),
-          #   (agent_set_max_hit_points, ":agent_no", 145), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          # (else_try),
-            (gt, "$g_total_team_1_players", 10),
-            (agent_set_max_hit_points, ":agent_no", 140), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-          (else_try),
-            (gt, "$g_total_team_1_players", 5),
-            (agent_set_max_hit_points, ":agent_no", 135), # default 150 (last modded was 380) BEFORE KEY MOD: 425
-        (try_end),
+			(agent_set_max_hit_points, ":agent_no", 200), # default 175 (last modded was 235)
+			(agent_set_damage_modifier, ":agent_no", 145), # default 150 (last modded was 145)
 		(try_end),
       #Friendly buffs
       # (assign, ":friendly_health_mod", 120),
@@ -11779,7 +11701,7 @@ mission_templates = [
          (multiplayer_is_server),
          (agent_is_human, ":agent_no"),
          (eq, ":agent_team_no", 0),
-         (val_add, "$g_global_friendly_count", 1),   # Daimyo Global Friendly Count
+         (val_add, "$g_global_friendly_count", 1),   # Daimyo Global Enemy Count
       (try_end),
       (try_begin),
          (neg|agent_is_non_player, ":agent_no"),
@@ -11792,6 +11714,8 @@ mission_templates = [
          (eq, ":agent_team_no", 1),
          (val_add, "$g_global_enemy_count", 1),   # Daimyo Global Enemy Count
       (try_end),
+
+      
 
       #is hero agent?
       (try_begin),
@@ -11925,7 +11849,7 @@ mission_templates = [
 				(assign, "$g_multiplayer_ccoop_spawn_alive_player_squad_and_minus_one_first_spawn_slots_and_minus_one_first_spawn_slots", -1),
 			(try_end),
 			
-			(assign, "$g_multiplayer_ccoop_wave_no", 4), #Start on wave 4 (+1 on start)
+			(assign, "$g_multiplayer_ccoop_wave_no", 3), #Start on wave 4 (+1 on start)
 			(assign, "$g_multiplayer_ccoop_game_started", 0),
 			(assign, "$g_multiplayer_ccoop_enable_count_down", 0),
 			(assign, "$g_multiplayer_ccoop_change_map", 0),
@@ -11936,7 +11860,7 @@ mission_templates = [
       (assign, "$g_disable_horses", 0),
       (assign, "$g_total_team_1_players", 0), 
       (assign, "$g_total_team_1_players_last", -1), 
-      (assign, "$g_max_team_1_agents", 130), #Maximum amount of agents on player side (300 if you count 50 horse)
+      (assign, "$g_max_team_1_agents", 180), #Maximum amount of agents on player side (300 if you count 50 horse)
       (assign, "$g_gold_round_bonus", 500),  #base round bonus
       (assign, "$g_combat_gold", 100),  #base round bonus
       (assign, "$g_max_allowed_ping", 400),
@@ -11945,29 +11869,24 @@ mission_templates = [
       (assign, "$g_max_friendly_allowed_horses", 50),
       (assign, "$g_min_plyr_enable_dyn_sqds", 1), 
       (assign, "$g_map_horses_enabled", 1),
-      (assign, "$g_global_horse_count", 0),
       (assign, "$g_dy_reduce_enemy_spawn", 0),
       (assign, "$g_bonus_squad_money_given", 0),
       (assign, "$g_map_scale", 0),
       (assign, "$g_map_total_war", 0),
-      (assign, "$g_enemy_allowed_alive_init_1", 130),
-      (assign, "$g_enemy_allowed_alive_init_2", 120),
-      (assign, "$g_enemy_allowed_alive_init_3", 110),
+      (assign, "$g_enemy_allowed_alive_init_1", 100),
+      (assign, "$g_enemy_allowed_alive_init_2", 90),
+      (assign, "$g_enemy_allowed_alive_init_3", 80),
       (store_div, "$g_enemy_allowed_reinforce_init_1", "$g_enemy_allowed_alive_init_1", 2),
       (store_div, "$g_enemy_allowed_reinforce_init_2", "$g_enemy_allowed_alive_init_2", 2),
       (store_div, "$g_enemy_allowed_reinforce_init_3", "$g_enemy_allowed_alive_init_3", 2),
-      (assign, "$g_enemy_allowed_alive_1", 120),
-      (assign, "$g_enemy_allowed_alive_2", 110),
-      (assign, "$g_enemy_allowed_alive_3", 100),
+      (assign, "$g_enemy_allowed_alive_1", 80),
+      (assign, "$g_enemy_allowed_alive_2", 70),
+      (assign, "$g_enemy_allowed_alive_3", 60),
       (store_div, "$g_enemy_allowed_reinforce_1", "$g_enemy_allowed_alive_1", 2),
       (store_div, "$g_enemy_allowed_reinforce_2", "$g_enemy_allowed_alive_2", 2),
       (store_div, "$g_enemy_allowed_reinforce_3", "$g_enemy_allowed_alive_3", 2),
       (assign, "$g_admin_override_max_players", 30),
       #Daimyo globals
-      (assign, "$g_respawn_mid_reinforcement_counter", 999999999), #Mid way reinforcement wave spawn
-      (assign, "$g_reinforcement_buffer", 31),  #used as base reset
-      (assign, "$g_reinforcement_buffer_counter", 31), #counter to buffer in between spawns
-      (assign, "$g_mid_reinforcements_spawned_this_wave", 1), #Check if mid reinforcements spawned this wave
       (assign, "$g_cart_respawns", 2), #Number of cart respawns per wave.
       (assign, "$g_cart_respawns_count", "$g_cart_respawns"), #Number of cart respawns per wave counter
       (assign, "$g_gates_hit_timer", 3), #gate hit timer to decrease lag
@@ -11978,12 +11897,10 @@ mission_templates = [
       (assign, "$g_max_server_msg_tips", 9), #Starting at 0, so 0 to 9
       (assign, "$g_last_server_msg_tip", -1), #So tips dont show twice
       (assign, "$g_max_server_intro_messages", 10), #Always +1 server_message starts at 0
-      (store_random_in_range, "$g_server_msg_tips_interval", 600, 1800),
-      (assign, "$g_server_forces_broad_interval_reset", 63), #Always +1 server_message starts at 0
-      (assign, "$g_server_forces_broad_interval", "$g_server_forces_broad_interval_reset"), #Always +1 server_message starts at 0
-      (assign, "$g_kill_stray_horse_time", 15), #Kill stray horses if X amount of time passes
-      (assign, "$g_kill_player_horse_time", 120),  #5 Minutes #Kill player horse if X amount of time passes
-      (assign, "$g_kill_horse_no_move_time", 15), #Kill Enemy Horse Time when position static for X amount of time
+      (store_random_in_range, "$g_server_msg_tips_interval", 1800, 3600), #30 minute interval
+      (assign, "$g_kill_stray_horse_time", 30), #Kill stray horses if X amount of time passes
+      (assign, "$g_kill_player_horse_time", 300),  #5 Minutes #Kill player horse if X amount of time passes
+      (assign, "$g_kill_horse_no_move_time", 60), #Kill Enemy Horse Time when position static for X amount of time
       (assign, "$g_horse_check", 12),
       (assign, "$g_one_run_test_hit_points", 0),
       (assign, "$g_cart_check_dead_players", 8),
@@ -12022,70 +11939,76 @@ mission_templates = [
       (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 0), #These will change based on compatibility of map
       (assign, "$g_dy_last_quest_type", -1), # dy Keeps track of last quest type #0 friendly, 1 = enemy
       (assign, "$g_enable_quest", 0),
+      (assign, "$g_last_consecutive_quest_completed", 0),
+      (assign, "$g_reinforcement_tier_1", 0),
+      (assign, "$g_reinforcement_tier_2", 0),
       (assign, "$g_reinforcement_tier_3", 0),
       (assign, "$g_reinforcement_spawning", 0),
+      (assign, "$g_reinforcement_tier_spawned", 0), #1, 2, 3
       (assign, "$g_reinforcement_spawned", 0),
-      (assign, "$g_consecutive_quests_completed", 0), #May use later
-      (assign, "$g_quest_complete_reward_reinforcement", 3), #How many til we reward a reinforcement?
-      (assign, "$g_reinforcement_size_tier_3", 20),
+      (assign, "$g_consecutive_quests_completed", 0),
+      (assign, "$g_reinforcement_size_tier_1", 80),
+      (assign, "$g_reinforcement_size_tier_2", 100),
+      (assign, "$g_reinforcement_size_tier_3", 120),
       (assign, "$g_max_streak", 7),
+      (assign, "$g_total_streak", 0),
       (assign, "$g_current_tier_maxed", 0),
       #Daimyo Future Boss Globals
       (assign, "$g_is_boss_round", 0),
       
       #Daimyo Globals Quest Rewards (#Penalty = reward * 1.5)
- (try_begin),
+      (try_begin),
         (is_between, "$g_multiplayer_ccoop_wave_no", 0, 11),
-        (assign, "$g_player_health_mod", 500),
+        (assign, "$g_player_health_mod", 700),
         (assign, "$g_player_horse_health", 300),
-        (assign, "$g_player_damage_mod", 190),
-        (assign, "$g_reinforcement_health_mod", 240),
-        (assign, "$g_reinforcement_horse_health", 150),
-        (assign, "$g_reinforcement_damage_mod", 125),
-        (assign, "$g_dy_quest_reward_selected", 4000),
-        (assign, "$g_dy_quest_penalty_selected", 6000),
-        (assign, "$g_vip_hero_health_mod", 315),
+        (assign, "$g_player_damage_mod", 210),
+        (assign, "$g_reinforcement_health_mod", 300),
+        (assign, "$g_reinforcement_horse_health", 180),
+        (assign, "$g_reinforcement_damage_mod", 160),
+        (assign, "$g_dy_quest_reward_selected", 3000),
+        (assign, "$g_dy_quest_penalty_selected", 4000),
+        (assign, "$g_vip_hero_health_mod", 350),
         (assign, "$g_vip_horse_health", 250),
-        (assign, "$g_hero_guard_health_mod", 195),
-        (assign, "$g_vip_hero_damage_mod", 120),
+        (assign, "$g_hero_guard_health_mod", 225),
+        (assign, "$g_vip_hero_damage_mod", 130),
         (assign, "$g_hero_guard_damage_mod", 110),
       (else_try),
         (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
-        (assign, "$g_player_health_mod", 600),
+        (assign, "$g_player_health_mod", 800),
         (assign, "$g_player_horse_health", 400),
-        (assign, "$g_player_damage_mod", 210),
-        (assign, "$g_reinforcement_health_mod", 280),
-        (assign, "$g_reinforcement_horse_health", 200),
-        (assign, "$g_reinforcement_damage_mod", 135),
-        (assign, "$g_dy_quest_reward_selected", 5000),
-        (assign, "$g_dy_quest_penalty_selected", 7000),
-        (assign, "$g_vip_hero_health_mod", 405),
+        (assign, "$g_player_damage_mod", 230),
+        (assign, "$g_reinforcement_health_mod", 350),
+        (assign, "$g_reinforcement_horse_health", 230),
+        (assign, "$g_reinforcement_damage_mod", 170),
+        (assign, "$g_dy_quest_reward_selected", 4000),
+        (assign, "$g_dy_quest_penalty_selected", 6000),
+        (assign, "$g_vip_hero_health_mod", 450),
         (assign, "$g_vip_horse_health", 350),
-        (assign, "$g_hero_guard_health_mod", 285),
-        (assign, "$g_vip_hero_damage_mod", 130),
-        (assign, "$g_hero_guard_damage_mod", 120),
+        (assign, "$g_hero_guard_health_mod", 325),
+        (assign, "$g_vip_hero_damage_mod", 150),
+        (assign, "$g_hero_guard_damage_mod", 130),
       (else_try),
         (is_between, "$g_multiplayer_ccoop_wave_no", 21, 31),
-        (assign, "$g_player_health_mod", 700),
+        (assign, "$g_player_health_mod", 900),
         (assign, "$g_player_horse_health", 500),
-        (assign, "$g_player_damage_mod", 230),
-        (assign, "$g_reinforcement_health_mod", 320),
-        (assign, "$g_reinforcement_horse_health", 275),
-        (assign, "$g_reinforcement_damage_mod", 145),
-        (assign, "$g_dy_quest_reward_selected", 7000),
+        (assign, "$g_player_damage_mod", 250),
+        (assign, "$g_reinforcement_health_mod", 425),
+        (assign, "$g_reinforcement_horse_health", 305),
+        (assign, "$g_reinforcement_damage_mod", 180),
+        (assign, "$g_dy_quest_reward_selected", 6000),
         (assign, "$g_dy_quest_penalty_selected", 9000),
-        (assign, "$g_vip_hero_health_mod", 490),
+        (assign, "$g_vip_hero_health_mod", 550),
         (assign, "$g_vip_horse_health", 450),
-        (assign, "$g_hero_guard_health_mod", 375),
-        (assign, "$g_vip_hero_damage_mod", 155),
-        (assign, "$g_hero_guard_damage_mod", 135),
+        (assign, "$g_hero_guard_health_mod", 425),
+        (assign, "$g_vip_hero_damage_mod", 180),
+        (assign, "$g_hero_guard_damage_mod", 150),
       (try_end),
       #Daimyo Globals Quest
       (assign, "$g_max_vip_attackers", 25),
       (assign, "$started_broadcast_ran", 0),
       (assign, "$g_hero_guard_total", -1),
       (store_random_in_range, "$g_guard_hero_wait_interval", 5, 8),
-      (store_random_in_range, "$g_quest_main_countdown", 90, 300),    # dy quest count down
+      (store_random_in_range, "$g_quest_main_countdown", 90, 180),    # dy quest count down
       #(assign, "$g_quest_main_countdown", 10), #debug
       (assign, "$g_dy_quest_in_progress", -1), # dy Is quest in progress? This disables quest counter in meantime til quest finished
       (assign, "$g_dy_quest_complete", -1), #Dy Bool to trigger quest complete
@@ -12516,23 +12439,6 @@ mission_templates = [
               (agent_set_hit_points,":cur_agent", 0, 0),
         (try_end), #End try agent
       (try_end),
-    ]),
-
-    (5, 0, 0, [(multiplayer_is_server),#Count Horses globally every X seconds
-      (eq, "$g_map_horses_enabled", 1), 
-              ],
-    [
-
-      (assign, "$g_global_horse_count", 0),
-      (try_begin),
-        (eq, "$g_map_horses_enabled", 1),
-        (try_for_agents, ":cur_agent"),
-              (neg|agent_is_human, ":cur_agent"),
-              (agent_is_active, ":cur_agent"),
-              (agent_is_alive, ":cur_agent"),
-              (val_add, "$g_global_horse_count", 1),
-        (try_end), #End try agent
-      (try_end),
     ]),  
     (1, 0, 0, [(multiplayer_is_server), #Daimyo Dynamic Squad Tick
               ],
@@ -12564,100 +12470,43 @@ mission_templates = [
         (gt, "$g_total_players", 0),
         (assign, reg37, "$g_total_players"),
         (assign, reg38, "$g_total_team_1_players"),
-        (assign, reg39, "$g_reinforcement_tier_3"),
-        (display_message, "@Total players: {reg37} | Players Team 1: {reg38} | Reinforcements: {reg39}"),
+        (display_message, "@Total players: {reg37} | Players Team 1: {reg38}"),
       (try_end),
 
 
       (try_begin),
       	(neq, "$g_map_scale", 1),
-        (gt, "$g_total_team_1_players", 10),
-        (le, "$g_total_team_1_players", 20),
-        (assign, "$g_max_team_1_agents", 120),
+        (gt, "$g_total_players", 10),
+        (le, "$g_total_players", 20),
         (assign, "$g_dy_reduce_enemy_spawn", 1),
-        (gt, "$g_total_team_1_players", 15),
-        (assign, "$g_max_team_1_agents", 110),
+
       (else_try),
         (neq, "$g_map_scale", 1),
-      	(gt, "$g_total_team_1_players", 20),
-        (assign, "$g_max_team_1_agents", 100),
+      	(gt, "$g_total_players", 20),
+        (assign, "$g_dy_reduce_enemy_spawn", 2),
+      (else_try),
+        (neq, "$g_map_scale", 1),
+        (le, "$g_total_players", 10),
+        #(eq, "$g_map_scale", 0),
+        (assign, "$g_dy_reduce_enemy_spawn", 0),
+      (try_end),
+
+      (try_begin),
+        (neq, "$g_map_scale", 1),
+        (gt, "$g_total_players", 10),
+        (le, "$g_total_players", 20),
+        (le, "$g_global_friendly_count", 160),
         (assign, "$g_dy_reduce_enemy_spawn", 0),
       (else_try),
         (neq, "$g_map_scale", 1),
-        (le, "$g_total_team_1_players", 10),
-        #(eq, "$g_map_scale", 0),
-        (assign, "$g_dy_reduce_enemy_spawn", 2),
-      (try_end),
-
-      (try_begin),
-        (eq, "$g_map_scale", 1),
-        (gt, "$g_total_team_1_players", 15),
-        (assign, "$g_max_team_1_agents", 110),
+        (gt, "$g_total_players", 20),
+        (le, "$g_global_friendly_count", 160),
+        (assign, "$g_dy_reduce_enemy_spawn", 0),
       (else_try),
-        (eq, "$g_map_scale", 1),
-        (gt, "$g_total_team_1_players", 20),
-        (assign, "$g_max_team_1_agents", 100),
-      (try_end),
-      #Scale Horses Based On Total Agents (including horses themselves)
-      (assign, ":total_agents", 0),
-      (store_add, ":total_agents", "$g_global_friendly_count", "$g_global_enemy_count"),
-      (val_add, ":total_agents", "$g_global_horse_count"),
-      (try_begin),
         (neq, "$g_map_scale", 1),
-        (try_begin),
-          (gt, ":total_agents", 200),
-          (assign, "$g_kill_stray_horse_time", 5), #Kill stray horses if X amount of time passes
-          (assign, "$g_kill_horse_no_move_time", 5), #Kill Enemy Horse Time when position static for X amount of time
-          (assign, "$g_kill_player_horse_time", 60),  #5 Minutes #Kill player horse if X amount of time passes
-        (else_try),
-          (le, ":total_agents", 200),
-          (gt, ":total_agents", 160),
-          (assign, "$g_kill_stray_horse_time", 10), #Kill stray horses if X amount of time passes
-          (assign, "$g_kill_horse_no_move_time", 10), #Kill Enemy Horse Time when position static for X amount of time
-          (assign, "$g_kill_player_horse_time", 90),  #5 Minutes #Kill player horse if X amount of time passes
-        (else_try),
-          (le, ":total_agents", 160),
-          (assign, "$g_kill_stray_horse_time", 15), #Kill stray horses if X amount of time passes
-          (assign, "$g_kill_horse_no_move_time", 15), #Kill Enemy Horse Time when position static for X amount of time
-          (assign, "$g_kill_player_horse_time", 120),  #5 Minutes #Kill player horse if X amount of time passes
-        (try_end),
-      (try_end),
-
-
-      (try_begin), #Scale based on dead players/friendlies
-
-        (eq, "$g_map_scale", 1), #Map IS scaled
+        (gt, "$g_global_friendly_count", 215),
         (assign, "$g_dy_reduce_enemy_spawn", 2),
-
-        #Scale for > 10 players and friendly army size less than specified amount
-        (try_begin),
-          (le, ":total_agents", 200),
-          (ge, "$g_total_team_1_players", 20),
-          (assign, "$g_dy_reduce_enemy_spawn", 0),
-        (else_try),
-          (ge, "$g_total_team_1_players", 10),
-          (assign, "$g_dy_reduce_enemy_spawn", 1),
-          (le, ":total_agents", 200),
-          (le, "$g_global_friendly_count", 80),
-          (assign, "$g_dy_reduce_enemy_spawn", 0),
-        (try_end),
-
-      (else_try), #Map NOT Scaled
-
-        #Scale for > 10 players and friendly army size less than specified amount
-        (try_begin),
-          (le, ":total_agents", 200),
-          (ge, "$g_total_team_1_players", 20),
-          (assign, "$g_dy_reduce_enemy_spawn", 0),
-        (else_try),
-          (ge, "$g_total_team_1_players", 10),
-          (assign, "$g_dy_reduce_enemy_spawn", 1),
-          (le, ":total_agents", 200),
-          (le, "$g_global_friendly_count", 90),
-          (assign, "$g_dy_reduce_enemy_spawn", 0),
-        (try_end),
-
-      (try_end),  
+      (try_end),
 
       (try_begin), #Enable or Disable Dynamic Squad Sizes
         #(assign, "$g_min_plyr_enable_dyn_sqds", 0), #DEBUG
@@ -12732,61 +12581,61 @@ mission_templates = [
 
 
       #Team Reinforcements START
-      # (try_begin), #Reset on next tier waves (vet, elite)
-      #   (eq, "$g_multiplayer_ccoop_wave_no", 15),
-      #   (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
-      #   (assign, "$g_consecutive_quests_completed", 0),
-      #   (assign, "$g_current_tier_maxed", 0),
-      # (else_try),
-      #   (eq, "$g_multiplayer_ccoop_wave_no", 25),
-      #   (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
-      #   (assign, "$g_consecutive_quests_completed", 0),
-      #   (assign, "$g_current_tier_maxed", 0),
-      # (try_end),     
-      # (try_begin),
-      #   (gt, "$g_reinforcement_tier_3", 0),
-      #   (eq, "$g_mid_reinforcements_spawned_this_wave", 0), #Did mid way reinforcement spawn?
-      #   (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 27),
-      #   (val_sub, "$g_respawn_mid_reinforcement_counter", 1), #Mid way reinforcement wave spawn
-      # (try_end),
+      (try_begin), #Reset on next tier waves (vet, elite)
+        (eq, "$g_multiplayer_ccoop_wave_no", 15),
+        (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+        (assign, "$g_consecutive_quests_completed", 0),
+        (assign, "$g_current_tier_maxed", 0),
+        (assign, "$g_last_consecutive_quest_completed", 0),
+      (else_try),
+        (eq, "$g_multiplayer_ccoop_wave_no", 25),
+        (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+        (assign, "$g_consecutive_quests_completed", 0),
+        (assign, "$g_current_tier_maxed", 0),
+        (assign, "$g_last_consecutive_quest_completed", 0),
+      (try_end),
 
       (try_begin), #Broadcast current wave on countdown
         (gt, "$g_multiplayer_ccoop_game_started", 0),
+        (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
         (call_script, "script_dy_broadcast_team_reinforcements", 0),
       (try_end),
 
+      (try_begin), #Reset reinforcements if needed
+        (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 27),
+        (lt, "$g_global_friendly_count", 10),
+        (this_or_next|gt, "$g_reinforcement_tier_1", 1),
+        (this_or_next|gt, "$g_reinforcement_tier_2", 1),
+        (gt, "$g_reinforcement_tier_3", 1),
+        (eq, "$g_reinforcement_spawned", 1),
+        (assign, "$g_reinforcement_spawned", 0),
+      (try_end),
+      #Testing
+      # (try_begin),
+      #   (gt, "$g_multiplayer_ccoop_wave_no", 4),
+      #   (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+      #   (assign, "$g_reinforcement_tier_1", 7),
+      #   (assign, "$g_reinforcement_tier_2", 5),
+      #   (assign, "$g_reinforcement_tier_3", 5),
+      # (try_end),
       (try_begin), #Spawn reinforcements if available and needed
-        (val_sub, "$g_reinforcement_buffer_counter", 1), 
-        (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
-        (neq, "$g_prison_cart_destroyed", 1),
-        (gt, "$g_reinforcement_tier_3", 0),
-        (eq, "$g_reinforcement_spawning", 0),
-        (le, "$g_reinforcement_buffer_counter", 0), 
-        (store_div, ":friendly_alive_required", "$g_max_team_1_agents", 6),
-        #(store_div, ":players_alive_required", "$g_total_team_1_players", 6),
-        (assign, reg34, "$g_global_friendly_count"),
-        (assign, reg35, ":friendly_alive_required"),
-        (assign, reg36, "$g_global_alive_player_count"),
-        (display_message, "@g_friendly_count: {reg34} | friendly_alive_required: {reg35} | g_alive_player_count: {reg36}"),
-        (this_or_next|lt, "$g_global_friendly_count", ":friendly_alive_required"),
-        (this_or_next|lt, "$g_global_alive_player_count", 1),
-        (le, "$g_respawn_mid_reinforcement_counter", 0), #Mid way reinforcement wave spawn
+        (eq, "$g_reinforcement_spawned", 0),
+        (lt, "$g_global_friendly_count", 8),
+        (this_or_next|gt, "$g_reinforcement_tier_1", 1),
+        (this_or_next|gt, "$g_reinforcement_tier_2", 1),
+        (gt, "$g_reinforcement_tier_3", 1),
         (assign, "$g_reinforcement_spawning", 1),
-        (assign, "$g_reinforcement_buffer_counter", "$g_reinforcement_buffer"), #Reset buffer counter
         (call_script, "script_dy_spawn_team_reinforcements"),
-        (assign, "$g_reinforcement_spawning", 0),
-        # (try_begin),
-        #   (le, "$g_respawn_mid_reinforcement_counter", 0), #Mid way reinforcement wave spawn
-        #   (assign, "$g_mid_reinforcements_spawned_this_wave", 1), #Did mid way reinforcement spawn?
-        #   (assign, "$g_respawn_mid_reinforcement_counter", 99999), #Did mid way reinforcement spawn?
-        # (try_end),
+        (assign, "$g_reinforcement_spawned", 1),
         (call_script, "script_dy_verify_tier_reset"),
+        (assign, "$g_reinforcement_tier_spawned", 0),
+        (assign, "$g_reinforcement_spawning", 0),
       (try_end),
 
-      # (try_begin), #Spawn reinforcements if available and needed
-      #   (gt, "$g_consecutive_quests_completed", 0),
-      #   (call_script, "script_dy_reset_streak_on_max"),
-      # (try_end),
+      (try_begin), #Spawn reinforcements if available and needed
+        (gt, "$g_consecutive_quests_completed", 0),
+        (call_script, "script_dy_reset_streak_on_max"),
+      (try_end),
       #Team Reinforcements END
 
       #(try_begin), #DY balance horse agents
@@ -12906,8 +12755,6 @@ mission_templates = [
           (call_script, "script_multiplayer_ccoop_get_alive_enemy_count"),
           #(store_sub, ":free_enemy_slots", 100, reg0), #enemy required 
           
-
-
           #Reset Cart Respawn Lives
           (assign, "$g_cart_respawns_count", "$g_cart_respawns"),
           
@@ -12926,11 +12773,6 @@ mission_templates = [
             (assign, ":reinforce_percentage", "$g_enemy_allowed_reinforce_init_3"),           
           (try_end),
 
-          (try_begin),
-            #regulate over spawning
-            (gt, ":free_enemy_slots", "$g_enemy_allowed_alive_init_1"),
-            (assign, ":free_enemy_slots", "$g_enemy_allowed_alive_init_1"),
-          (try_end),
           (ge, ":free_enemy_slots", ":reinforce_percentage"),  # if X or more enemy reinforcement needed
           (call_script, "script_multiplayer_ccoop_spawn_wave", ":free_enemy_slots"),
           #Daimyo Overlap check END
@@ -13173,18 +13015,14 @@ mission_templates = [
         (try_begin),
           (try_begin),
             (val_sub, "$g_server_msg_tips_interval", 1),
-            (val_sub, "$g_server_forces_broad_interval", 1),
           (try_end),
           (get_max_players, ":num_players"),
           (try_for_range, ":player_no", 1, ":num_players"),
             (player_is_active, ":player_no"),
-            # (try_begin), #SERVER MESSAGE TIP
-            #   (lt, "$g_server_forces_broad_interval", 0),
-            #   (call_script, "script_server_msg_friendly_forces_broadcast", ":player_no"),
-            # (else_try),
-            #   (lt, "$g_server_msg_tips_interval", 0),
-            #   (call_script, "script_select_server_msg_tip_and_broadcast", ":player_no"),
-            # (try_end),
+            (try_begin), #SERVER MESSAGE TIP
+              (lt, "$g_server_msg_tips_interval", 0),
+              (call_script, "script_select_server_msg_tip_and_broadcast", ":player_no"),
+            (try_end),
             (player_slot_eq, ":player_no", slot_player_received_intro_messages, 0),
             (player_get_slot, ":player_cur_message", ":player_no", slot_player_current_intro_message),
             (try_begin), #SERVER BROADCAST INTRO
@@ -13195,14 +13033,8 @@ mission_templates = [
               (player_set_slot, ":player_no", slot_player_received_intro_messages, 1),
             (try_end),
           (try_end), #Try for range end
-          (try_begin),
-            (lt, "$g_server_forces_broad_interval", 0),
-            (assign, "$g_server_forces_broad_interval", "$g_server_forces_broad_interval_reset"), #Always +1 server_message starts at 0
-          (else_try),
-            (lt, "$g_server_msg_tips_interval", 0),
-            (store_random_in_range, "$g_server_msg_tips_interval", 600, 1800),
-          (try_end),
-          (assign, "$g_server_forces_broad_interval", "$g_server_forces_broad_interval_reset"), #Always +1 server_message starts at 0
+          (lt, "$g_server_msg_tips_interval", 0),
+          (store_random_in_range, "$g_server_msg_tips_interval", 1800, 3600),
         (try_end),
     ]), 
     
@@ -13211,67 +13043,38 @@ mission_templates = [
 		(1, 0, 0, [(multiplayer_is_server),],	###Main Management Start###	 
 		[
 
- (try_begin),
+      (try_begin),
         (is_between, "$g_multiplayer_ccoop_wave_no", 0, 11),
         (assign, "$g_player_health_mod", 500),
         (assign, "$g_player_horse_health", 300),
-        (assign, "$g_player_damage_mod", 190),
-        (assign, "$g_reinforcement_health_mod", 240),
+        (assign, "$g_player_damage_mod", 200),
+        (assign, "$g_reinforcement_health_mod", 150),
         (assign, "$g_reinforcement_horse_health", 150),
-        (assign, "$g_reinforcement_damage_mod", 125),
-        (assign, "$g_dy_quest_reward_selected", 4000),
-        (assign, "$g_dy_quest_penalty_selected", 6000),
-        (assign, "$g_vip_hero_health_mod", 315),
-        (assign, "$g_vip_horse_health", 250),
-        (assign, "$g_hero_guard_health_mod", 195),
-        (assign, "$g_vip_hero_damage_mod", 115),
-        (assign, "$g_hero_guard_damage_mod", 110),
-        #Cart respawns
-        (assign, "$g_cart_respawns", 2),
+        (assign, "$g_reinforcement_damage_mod", 120),
       (else_try),
         (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
         (assign, "$g_player_health_mod", 600),
         (assign, "$g_player_horse_health", 400),
-        (assign, "$g_player_damage_mod", 210),
-        (assign, "$g_reinforcement_health_mod", 280),
+        (assign, "$g_player_damage_mod", 220),
+        (assign, "$g_reinforcement_health_mod", 200),
         (assign, "$g_reinforcement_horse_health", 200),
-        (assign, "$g_reinforcement_damage_mod", 135),
-        (assign, "$g_dy_quest_reward_selected", 5000),
-        (assign, "$g_dy_quest_penalty_selected", 7000),
-        (assign, "$g_vip_hero_health_mod", 405),
-        (assign, "$g_vip_horse_health", 350),
-        (assign, "$g_hero_guard_health_mod", 285),
-        (assign, "$g_vip_hero_damage_mod", 130),
-        (assign, "$g_hero_guard_damage_mod", 120),
-        #Cart respawns
-        (assign, "$g_cart_respawns", 2),
+        (assign, "$g_reinforcement_damage_mod", 130),
       (else_try),
         (is_between, "$g_multiplayer_ccoop_wave_no", 21, 31),
         (assign, "$g_player_health_mod", 700),
         (assign, "$g_player_horse_health", 500),
-        (assign, "$g_player_damage_mod", 230),
-        (assign, "$g_reinforcement_health_mod", 320),
+        (assign, "$g_player_damage_mod", 240),
+        (assign, "$g_reinforcement_health_mod", 275),
         (assign, "$g_reinforcement_horse_health", 275),
-        (assign, "$g_reinforcement_damage_mod", 145),
-        (assign, "$g_dy_quest_reward_selected", 7000),
-        (assign, "$g_dy_quest_penalty_selected", 9000),
-        (assign, "$g_vip_hero_health_mod", 490),
-        (assign, "$g_vip_horse_health", 450),
-        (assign, "$g_hero_guard_health_mod", 375),
-        (assign, "$g_vip_hero_damage_mod", 155),
-        (assign, "$g_hero_guard_damage_mod", 135),
-        #Cart respawns
-        (assign, "$g_cart_respawns", 2),
+        (assign, "$g_reinforcement_damage_mod", 140),
       (try_end),
 
       (try_begin),
         (neq, "$g_map_scale", 1),
         (neq, "$g_map_total_war", 1),
         #(eq, "$g_prison_cart_destroyed", 1),
-        (ge, "$g_total_team_1_players", 10),
-        (eq, "$g_multiplayer_ccoop_wave_no", 30),
-        (le, "$g_global_friendly_count", 80),
-        #(gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 300),
+        (le, "$g_global_friendly_count", 140),
+        (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 300),
         
         # (this_or_next|gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
         # (this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 9),
@@ -13283,26 +13086,24 @@ mission_templates = [
         # (le, "$g_multiplayer_ccoop_enemy_respawn_secs", 480),
         # (eq, "$g_multiplayer_ccoop_wave_no", 30), # == wave 30
         # (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 300),
-
         (try_begin),
            (eq, "$g_dy_reduce_enemy_spawn", 0),
-           (assign, "$g_enemy_allowed_alive_1", 120),
+           (assign, "$g_enemy_allowed_alive_1", 100),
            (store_div, "$g_enemy_allowed_reinforce_1", "$g_enemy_allowed_alive_1", 2),
         (else_try),
            (eq, "$g_dy_reduce_enemy_spawn", 1),
-           (assign, "$g_enemy_allowed_alive_2", 110),
+           (assign, "$g_enemy_allowed_alive_2", 90),
            (store_div, "$g_enemy_allowed_reinforce_2", "$g_enemy_allowed_alive_2", 2),
         (else_try),
            (eq, "$g_dy_reduce_enemy_spawn", 2),
-           (assign, "$g_enemy_allowed_alive_3", 100),
+           (assign, "$g_enemy_allowed_alive_3", 80),
            (store_div, "$g_enemy_allowed_reinforce_3", "$g_enemy_allowed_alive_3", 2),
         (try_end),
      (else_try),
         (neq, "$g_map_total_war", 1),
-        (eq, "$g_map_scale", 1),
-        (assign, "$g_enemy_allowed_alive_1", 110),
-        (assign, "$g_enemy_allowed_alive_2", 100),
-        (assign, "$g_enemy_allowed_alive_3", 90),
+        (assign, "$g_enemy_allowed_alive_1", 80),
+        (assign, "$g_enemy_allowed_alive_2", 70),
+        (assign, "$g_enemy_allowed_alive_3", 60),
         (store_div, "$g_enemy_allowed_reinforce_1", "$g_enemy_allowed_alive_1", 2),
         (store_div, "$g_enemy_allowed_reinforce_2", "$g_enemy_allowed_alive_2", 2),
         (store_div, "$g_enemy_allowed_reinforce_3", "$g_enemy_allowed_alive_3", 2),
@@ -13448,10 +13249,8 @@ mission_templates = [
         (assign, "$g_ally_cart_attackers_check", 8), #interval to reinforce cart
         (this_or_next|gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
         (eq, "$g_multiplayer_ccoop_wave_no", 30), # == wave 30
-        (store_div, ":friendly_alive_required", "$g_max_team_1_agents", 5),
-        #(store_div, ":players_alive_required", "$g_total_team_1_players", 5),
-        (lt, "$g_global_friendly_count", ":friendly_alive_required"),
-        (lt, "$g_global_alive_player_count", 1),
+        (store_div, ":players_alive_required", "$g_total_team_1_players", 4),
+		    (le, "$g_global_alive_player_count", ":players_alive_required"),
         #(neq, "$g_prison_cart_destroyed", 1),
         #(neq, "$g_prison_cart_point", 0), # if visible
         #(call_script, "script_get_any_enemy_alive", 1), #Lets check if > 5 alive to even set guards.
@@ -13606,7 +13405,7 @@ mission_templates = [
       (try_end), #Daimyo Cart Defenders END
 
       (try_begin), #Clear cart defenders when no cart or its destroyed START
-        (this_or_next|le, "$g_global_enemy_count", 25),
+        (this_or_next|le, "$g_global_enemy_count", 16),
         (eq, "$g_prison_cart_destroyed", 1),
         (gt, "$g_enemy_cart_defenders", 0),
         (try_for_agents, ":cur_agent"),
@@ -13931,15 +13730,15 @@ mission_templates = [
                   (store_sub, reg3, reg2, reg1),
                   #(display_message, "@{!}distance between squared {reg0} terrain dist {reg1}"),
                   (store_current_scene, ":cur_scene"), 
-                  (assign, ":rearm_range", 40000),
+                  (assign, ":rearm_range", 28800),
                   (try_begin),
                     (eq, ":cur_scene", "scn_mp_totalwar"),#Random Plains Map Gigantic
                     (assign, ":rearm_range", 250000), #50 meters
                   (else_try),
-                    (assign, ":rearm_range", 40000),
+                    (assign, ":rearm_range", 28800),
                   (try_end),
                   (le, reg0, ":rearm_range"), #15m x 15m * 100 = 22500
-                  (is_between, reg3, -280, 280),
+                  (is_between, reg3, -250, 251),
                   
                   #Get Quiver Count
                   (assign, ":arrow_quiver_count", 0),
@@ -14221,16 +14020,6 @@ mission_templates = [
 					(end_try),
 				(try_end),
 				(try_begin),
-
-        (try_begin),
-          (eq, ":is_anyone_dead", 0),
-          (call_script, "script_dy_get_friendly_total"),
-          (assign, ":friendly_total", reg22),
-          (store_div, ":half_friendly_total", ":friendly_total", 2),
-          (le, "$g_global_friendly_count",":half_friendly_total"),
-          (assign, ":is_anyone_dead", 1),
-        (try_end),
-
 					(eq, ":is_anyone_dead", 0),
 					# destroy prison cart (since there is no dead player left in the game)
 					(call_script, "script_multiplayer_ccoop_destroy_prison_cart"),
@@ -14255,14 +14044,7 @@ mission_templates = [
           #(val_add, ":dead_count", 1), #Add one to count
 					(assign, ":is_anyone_dead", 1),
 				(try_end),
-        (try_begin),
-          (eq, ":is_anyone_dead", 0),
-          (call_script, "script_dy_get_friendly_total"),
-          (assign, ":friendly_total", reg22),
-          (store_div, ":half_friendly_total", ":friendly_total", 2),
-          (le, "$g_global_friendly_count",":half_friendly_total"),
-          (assign, ":is_anyone_dead", 1),
-        (try_end),
+
         #(try_begin), # Lets see if 50% of the team is dead, if yes then (assign, ":is_anyone_dead", 1),
           #(try_begin),
             #(gt, ":verified_count", 4),
@@ -14277,7 +14059,6 @@ mission_templates = [
 
 				(try_begin),
 					(eq, ":is_anyone_dead", 1),
-          (gt, "$g_cart_respawns_count", 0), 
 					(eq, "$g_multiplayer_ccoop_spawn_alive_player_squad_and_minus_one_first_spawn_slots_and_minus_one_first_spawn_slots", 1), # if cart is not spawned before in this round, otherwise that value would be 0
 					# spawn prison cart with 5 second delay
 					(le, "$g_multiplayer_ccoop_spawn_player_and_squad_counter", 0), # if not in player spawn period
@@ -14405,8 +14186,7 @@ mission_templates = [
 							 #(display_message, "@{!}g_multiplayer_ccoop_spawn_alive_player_squad: {reg0}"),
 						  (try_end),
 							(eq, "$g_multiplayer_ccoop_spawn_alive_player_squad_and_minus_one_first_spawn_slots_and_minus_one_first_spawn_slots", 1),
-              (this_or_next|neg|player_is_busy_with_menus, ":cur_player"), # if player is not busy with menus
-              (le, "$g_multiplayer_ccoop_enemy_respawn_secs", 2),
+							(neg|player_is_busy_with_menus, ":cur_player"), # if player is not busy with menus
 							(player_get_troop_id, ":player_troop", ":cur_player"), # if troop is not selected do not spawn his bots	
 							(ge, ":player_troop", 0),
 							
@@ -14455,22 +14235,15 @@ mission_templates = [
 			
 			(try_begin),
 				(ge, ":any_player_spawned", 1),
-  				(try_begin),
-            (eq, "$g_daimyo_debug_mode", 1),
-  				  (display_message, "@{!}first spawn" ),
-          (try_end),
+				(try_begin),
+        (eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}first spawn" ),
+        (try_end),
 				(assign, "$g_multiplayer_ccoop_game_started", 1),
 				
 				(assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 31), # set 31 secs left for next wave
 				(assign, "$g_multiplayer_ccoop_enable_count_down", 1), # enable count down
-        #Add a player as a place holder for map changers
-				#(store_current_scene, ":cur_scene"),
-        #(modify_visitors_at_site, ":cur_scene"),
-        (assign, "$g_reinforcement_spawning", 1),
-        (call_script, "script_dy_spawn_starter_reinforcements"),
-        #(add_visitors_to_current_scene, 10, 1, 1, 0, 0),
-        (assign, "$g_reinforcement_spawning", 0),
-       #(add_visitors_to_current_scene, ":point_no", ":cur_troop_type", ":spawn_count", ":player_team", ":player_no"),
+				
 				(call_script, "script_multiplayer_ccoop_start_player_and_squad_respawn_period", 1),
 			(try_end),
 		]),

@@ -84,12 +84,29 @@ slot_agent_duel_start_time        = 24
 
 slot_agent_walker_occupation      = 25
 slot_agent_courage_score_fading_out = 26
+slot_agent_is_cart_defender 		= 27
+slot_agent_is_hero_guard 			= 28
+slot_agent_hero_guard_guardpos 		= 29
+slot_agent_is_vip_attacker			= 30
+slot_agent_enemy_horse_timer		= 31
+slot_agent_horse_pos_x				= 32
+slot_agent_horse_pos_y				= 33
+slot_agent_horse_pos_z				= 34
+slot_agent_is_player_horse			= 35
+slot_agent_player_horse_timer		= 36
+slot_agent_is_stray_horse			= 37
+slot_agent_stray_horse_timer		= 38
+slot_agent_underwater_time			= 39
+slot_agent_underwater_now 			= 40
+slot_agent_player_leader_gone	    = 41 #Bool to determine if agents player leader left so we can despawn
+slot_agent_is_reinforcement_agent	= 42
+slot_agent_is_ally_cart_attacker_agent	= 43
 
 slot_agent_siege_state             = 126
 slot_agent_target_ladder           = 127
 slot_agent_time_since_last_command = 128
 
-    
+
 ########################################################
 ##  FACTION SLOTS          #############################
 ########################################################
@@ -778,6 +795,7 @@ slot_troop_relations_begin				= 0 #this creates an array for relations between t
 ########################################################
 ##  PLAYER SLOTS           #############################
 ########################################################
+#PLayer slots are like set/get variables for individual players/agents
 
 slot_player_spawned_this_round                 = 0
 slot_player_last_rounds_used_item_earnings     = 1
@@ -806,7 +824,17 @@ slot_player_bot_type_4_wanted                  = 38
 slot_player_spawn_count                        = 39
 slot_player_captain_bot_data_begin             = 40
 slot_player_captain_bot_data_end               = slot_player_captain_bot_data_begin + 12 # there are 12 bot types for each faction
+slot_player_received_intro_messages			   = 53
+slot_player_current_intro_message			   = 54
+slot_player_intro_messages_timer			   = 55
+slot_player_num_hit_cart					   = 56 #Track how many times player hit cart if first_hit_cart = 1
+slot_player_hit_cart_timer					   = 57 #store mission timer in this
+slot_player_first_hit_cart					   = 58 #Bool for first hit
+slot_player_ping_count_enabled				   = 59 #Bool to track ping count
+slot_player_high_ping_count					   = 60 #Track ping count for consistent high ping
+slot_player_squad_adjusted					   = 61 #Track ping count for consistent high ping
 
+#53 would be next slot
 
 ########################################################
 ##  TEAM SLOTS             #############################

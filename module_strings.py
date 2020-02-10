@@ -1600,10 +1600,26 @@ strings = [
   ("scn_mp_hillroad", "Hill road"),
   ("scn_mp_hutor", "Steppe farmstead"),
   ("scn_mp_river_village", "Village by the river"),
-  
   ("scn_mp_forest_edge", "Forest skirt"),
   ("scn_mp_forest_camp", "Forest camp"),
   ("scn_mp_forest_road", "Road in the forest"),
+  ("mp_carpathian", "The Carpathians"),
+  ("mp_yasna", "Yasna Gora"),
+  ("mp_edge_of_hell", "Edge of Hell"),
+  ("mp_smolensk", "Smolensk 1634"),
+  ("mp_river_fortress", "Riverside Fortress"),
+  ("mp_fortress", "The Fortress"),
+  ("mp_caligulas_orgy", "Caligulas RageRoom"),
+  ("mp_city_of_vamps", "City of Vampires"),
+  ("mp_crevasse", "The_Crevasse"),
+  ("mp_giants_path", "Path of Giants"),
+  ("mp_edge", "Edge of Doom"),
+  ("mp_totalwar", "TW Plains Large"),
+  ("mp_troy_invasion", "Troy Invasion"),
+  ("mp_intersburg", "Intersburg"),
+  ("mp_steppefort", "Steppe Fort"),
+  ("mp_fakriye_castle", "Fakriye Castle"),
+  ("mp_bohus_fortress", "Bohus Fortress"),
   #OiM end
   ("multi_scene_end", "multi scene end"),
 
@@ -2994,7 +3010,6 @@ strings = [
   ("oim_script_ms_event_change_prosperity", "Stub"),
   ("oim_script_ms_event_raise_taxes_week", "Stub"),
   ("oim_script_ms_event_notification_about_gold_usage", "Stub"),
-  
   ("mp_new_1", "Tatar town"),
   ("mp_new_2", "Fortified town"),
   ("mp_new_3", "Trenches"),
@@ -3089,5 +3104,126 @@ strings = [
   ("ask_for_help_to_respawn_hint", "You'll respawn once your comrades destroy the prisoner cart or pass the current round."),
   ("wait_for_next_turn_to_respawn_hint", "You will respawn in the next round."),
   
+  #Daimyo Custom Map Names
+  ("scn_mp_old_castle_mod_name", "York Town"),
+  ("scn_mp_arena_mod_name", "Arena Not Modded"),
+  ("mp_new_3_mod_name", "Monastery Fortress"),
+  ("mp_new_2_mod_name", "Fortified Town Redux"),
+  ("mp_new_1_mod_name", "Wood Fort in The Mountain"),
+  ("scn_mp_forest_road_mod_name", "A Castle in the Hills"),
+  ("scn_mp_forest_edge_mod_name", "Vyborg"),
+  ("scn_mp_river_village_mod_name", "Noah's Fortress"),
+  ("scn_mp_hutor_mod_name", "War of Kingdoms"),
+  ("scn_mp_hillroad_mod_name", "Stronghold"),
+  ("scn_mp_polya_mod_name", "Troy Invasion"),
+  ("scn_mp_swamp_delta_mod_name", "Oreshek"),
+  ("scn_mp_marketplace_mod_name", "Nomad Camp"),
+  
+
   ("mp_cbf_squad_auto_ratio", "Auto-balance captain squad ratio"),
+  #Server announcements
+  ("server_announcement_1", "Welcome to DynamicSquads v4.X!  This server is heavily modified server side to bring a new experience to WFAS!"),
+  ("server_announcement_2", "v4.2: Only one cart, reinforcements can go negative, attempt to fix overspawning, lowered round times, Attack VIP guards reduced"),
+  ("server_announcement_3", "v4.0: Reinforcements reworked, no more tiered crap.  Players earn reinforcements through quest/wave completion 1 for 1."),
+  ("server_announcement_4", "v4.0(cont): Reinforcement triggers once mid wave automatically and when players team is very low!"),
+  ("server_announcement_5", "v4.0(cont): Enemy numbers vastly increased, scales on player count. Unlimited Carts! Kill VIP quest bodyguards increased!."),
+  ("server_announcement_6", "v3.3: Old castle tweaks/Fields fixed, Wave 5 starter reinforcements reduced to 40..."),
+  ("server_announcement_7", "v3.3(cont) Players/Squad spawn when quest completes and or reinforcement! 2 Carts per wave!"),
+  ("server_announcement_8", "Suggest/give feedback at trello.com/vallenstudios select 'Daimyo WFAS Server Mod Board'"),
+  ("server_announcement_9", "To check out the latest changelog and server development, Press Escape >> 'Show Game Rules'."),
+  ("server_announcement_10", "Server Rules: No Racism (including names), No Griefing, No Endless arguing, HAVE FUN!"),
+
+  #Cart Auto kick
+  ("s0_cart_not_ready_auto_kick", "{s0}, CART NOT READY TO DESTROY | TOO MANY HITS = AUTO-KICK"),
+  ("auto_kick_s0_hit_cart_not_ready", "=== AUTO-KICKING {s0} FOR SPAM HITTING CART WHEN IT IS NOT READY ==="),
+  
+  #Dynamic Squad Messages
+  ("server_global_squad_size_is_reg0_combat_gold_reg1", "CURRENT SERVER SQUAD SIZE: {reg0} | COMBAT GOLD PER KILL ${reg1} "),
+  ("s0_your_squad_adjusted_from_reg0_to_reg1", "{s0}, Your squad size has been adjusted from {reg0} to {reg1}"),
+  ("s0_alive_squad_removed_reg0", "{s0} | Alive squad members removed: {reg0}"),
+  ("you_received_bonus_gold_reg0_for_dynamic_squad", "DYNAMIC SQUADS ENABLED | You received ${reg0} bonus gold"),
+  
+  #Friendly kill horses (currently disabled)
+  ("reg0_ai_horses_killed_current_max_reg1", "{reg0} Friendly AI horses killed for performance | Current MAX: {reg1}"),
+
+  #Current map message
+  ("server_current_map_is_s0_mod_name_s1", "Current map is: {s0} | Mod name: {s1}"),
+  
+  #high ping auto kick
+  ("server_kick_s0_player_high_ping_reg0", "AUTO-KICKING {s0} FOR CONSISTENT HIGH PING OVER {reg0}"),
+  
+  #round bonus received
+  ("round_gold_bonus_received_reg0", "Gold earned from completing last wave: {reg0}"),
+  
+  #follow development
+  ("follow_development", "Follow server development at trello.com/vallenstudios select 'Daimyo WFAS Server Mod Board'"),
+  ("suggest_feedback_development", "Suggest/give feedback at trello.com/vallenstudios select 'Daimyo WFAS Server Mod Board'"),
+
+  #server msg tips
+  ("server_msg_tip_1", "TIP: Ammoboxes w/ blue flags rearm you and your squad."),
+  ("server_msg_tip_2", "TIP: Beds heal you and your squad when nearby them. Water troughs and hay heal horses when nearby them."),
+  ("server_msg_tip_3", "TIP: Carts spawn when a player is dead and or half of the team is dead!"),
+  ("server_msg_tip_4", "TIP: Enemy AI guard carts! Try to bring some backup!"),
+  ("server_msg_tip_5", "TIP: Some enemies now carry grenades and double barreled guns(more to come)"),
+  ("server_msg_tip_6", "TIP: Completing quests gives money and reinforcements! Failing has large money penalty!"),
+  ("server_msg_tip_7", "TIP: Destroying the cart respawns all dead AI, regardless of if player is dead, a rearm/healing period is granted for 25 seconds"),
+  ("server_msg_tip_8", "TIP: Completing quests earn you reinforcements 1 is used automatically mid wave and when forces are low(refundd if not needed)!"),
+  ("server_msg_tip_9", "TIP: Player horses stay around much longer than AI horses when dismounted, mount horse again to refresh this timer"),
+  ("server_msg_tip_10", "TIP: When completing/failing a quest with guards, the Hero VIP will leave his guards to fight with or against you!"),
+
+  ("s27_destroyed_cart", "{s27} destroyed cart! All AI/Players respawned/healed/rearmed!"),
+  ("s25_hit_cart_right_reg25", "{s25} hit the right cart door! Door health: {reg25}"),  
+  ("s26_hit_cart_left_reg26", "{s26} hit the left cart door! Door Health: {reg26}"),
+  ("cart_can_destroy_reg22_percent_dead_reg23", "Cart needs {reg22} percent of allies to die| Troops left to die: {reg23}"),
+  #("cart_current_alive_reg23_total_reg24", "Alive Allies: {reg23}|Total Allies: {reg24}"),
+
+  ######Daimyo Quest Strings######:
+
+  #Team Reinforcements 
+  ("reinforcements_reg0_earned_from", "TEAM REINFORCEMENTS LEFT: {reg0} | Earned from quests/completing waves."),
+  ("reinforce_none", "NONE"),
+  ("reinforce_tier2", "LOOTERS"),
+  ("reinforce_tier3", "MILITIA"),
+  ("reinforce_tier4", "SLAVERS"),
+  ("reinforce_tier5", "BANDITS"),
+  ("reinforce_tier6", "HIRED BLADES"),
+  ("reinforce_tier7", "HIRED ELITES"),
+  ("reinforcement_deployed", "TEAM REINFORCEMENT DEPLOYED!"),
+  ("tier_reg0_streak_maxed_and_reset", "TIER{reg0} QUEST STREAK MAXED AND RESET"),
+  
+  #Kill/Defend Escort Quests:
+  ("s0_quest_starting_in_reg0_seconds_dest_points_reg1_reward_reg2_fail_penalty_reg3", "{s0} Quest in {reg0} |Waypoints: {reg1}|Reward: ${reg2}|Fail Penalty ${reg3}"),
+  ("s0_vip_reached_point_reg0_points_remaining_escort_s1_friendly", "{s0} reached a waypoint, {reg0} left! Escort {s1} to remaining points!"),
+  ("s0_vip_reached_point_reg0_points_remaining_kill_s1_enemy", "{s0} reached a waypoint, {reg0} left! Kill {s1} before he escapes!"),
+  ("s0_quest_started_escort_s1_marked_by_red_flag_blue_flag_is_dest", "{s0} QUEST STARTED, Escort {s1}, marked w/ RED Flag. BLUE Flag = current destination point."),
+  ("s0_quest_started_kill_s1_marked_by_red_flag_blue_flag_is_dest", "{s0} QUEST STARTED, kill {s1}, marked w/ RED Flag. BLUE Flag = current destination point."),
+
+  #Defend Quests
+  ("s0_quest_starting_in_reg0_seconds_defend_time_reg1_reward_reg2_fail_penalty_reg3", "{s0} Quest in {reg0} |Defend VIP for: {reg1} minutes|Reward: ${reg2}|Fail Penalty ${reg3}"),
+  ("reg0_min_left_defend_s0", "{reg0} minutes left to defend {s0}"),
+  ("reg0_sec_left_defend_s0", "{reg0} seconds left to defend {s0}"),
+  ("s0_quest_started_defend_s1_marked_red_flag", "{s0} QUEST STARTED. Defend {s1} marked with large RED flag. Quest COMPLETES when 'Defend Time' runs out."),
+
+  #Assasin Quests
+  ("s0_quest_starting_in_reg0_seconds_assassin_time_reg1_reward_reg2_fail_penalty_reg3", "{s0} Quest in {reg0} |Time to Kill: {reg1} minutes|Reward: ${reg2}|Fail Penalty ${reg3}"),
+  ("reg0_min_left_kill_s0", "{reg0} minutes left to kill {s0}"),
+  ("reg0_sec_left_kill_s0", "{reg0} seconds left to kill {s0}"),
+  ("s0_quest_started_kill_s1_marked_red_flag", "{s0} QUEST STARTED. Kill {s1} marked with RED flag."),
+  
+  #General Quest Types:
+  ("quest_type_vip_escort_friendly", "ESCORT VIP"),
+  ("quest_type_vip_escort_enemy", "KILL ESCORT"),
+  ("quest_type_assassinate", "KILL VIP"),
+  ("quest_type_defend_vip", "DEFEND VIP"),
+
+  #General Quest Strings:
+  ("s0_quest_expires_in_reg0_minutes", "{s0} Quest expires in {reg0} minutes"),
+  ("s0_quest_expires_in_reg0_seconds", "{s0} Quest expires in {reg0} seconds"),
+  ("s0_quest_complete_reward_reg0", "{s0} Quest Completed! Reward: ${reg0}"),
+  ("s0_quest_failed_penalty_reg0", "{s0} Quest Failed! Penalty: ${reg0}"),
+  ("s0_leave_his_guards_to_fight_as_thanks", "{s0} leaves his elite guards to fight the enemy as a thanks for protecting him!"),
+  ("s0_guards_commit_suicide_because_failed", "{s0}'s elite guards have failed to protect their leader and committed suicide"),
+  ("s0_leaves_his_guards_to_fight_because_fail", "{s0} leaves his elite guards to continue to fight because he views you as weak"),
+  #Battle Info
+  ("server_global_friendly_forces_reg1_out_of_reg2_remaining", "Forces: ({reg1}|{reg2}) remaining.. | Must KILL ALL on Elite Wave 10"),
 ]

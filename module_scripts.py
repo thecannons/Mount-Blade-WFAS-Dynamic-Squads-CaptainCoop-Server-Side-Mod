@@ -2144,7 +2144,7 @@ scripts = [
       (assign, "$g_multiplayer_disallow_ranged_weapons", 0),
       (assign, "$g_multiplayer_disallow_granades", 0),
 
-      (assign, "$g_multiplayer_initial_gold_multiplier", 100),
+      (assign, "$g_multiplayer_initial_gold_multiplier", 1000),
       (assign, "$g_multiplayer_battle_earnings_multiplier", 100),
       (assign, "$g_multiplayer_round_earnings_multiplier", 100),
   
@@ -2915,6 +2915,7 @@ scripts = [
 	  #
 	  (call_script, "script_multiplayer_fill_scene_props_ids"), 	  
 	  
+
 		# MCA:troop costs
 		(troop_set_slot, "trp_mp_swadian_militia", slot_troop_mp_squad_price, 100),
 		(troop_set_slot, "trp_mp_swadian_militia", slot_troop_mp_squad_type, 11),  # tear num - troop type num
@@ -5874,7 +5875,7 @@ scripts = [
              (assign, ":max_player_join_time", 0),
              (assign, ":latest_joined_player_no", -1),
              (get_max_players, ":num_players"),                               
-             (try_for_range, ":player_no", 0, ":num_players"),
+             (try_for_range, ":player_no", 1, ":num_players"),
                (player_is_active, ":player_no"),
                (player_get_team_no, ":player_team", ":player_no"),
                (eq, ":player_team", ":team_with_more_players"),
@@ -5913,14 +5914,14 @@ scripts = [
                  (player_get_value_of_original_items, ":old_items_value", ":latest_joined_player_no"),
                  (player_get_gold, ":player_gold", ":latest_joined_player_no"),
                  (val_add, ":player_gold", ":old_items_value"),
-                 (player_set_gold, ":latest_joined_player_no", ":player_gold", multi_max_gold_that_can_be_stored),
+                 #(player_set_gold, ":latest_joined_player_no", ":player_gold", multi_max_gold_that_can_be_stored),
                (try_end),
 
 			   (call_script, "script_mp_set_player_team_no", ":latest_joined_player_no", ":team_with_less_players", 0),
                (multiplayer_send_message_to_player, ":latest_joined_player_no", multiplayer_event_force_start_team_selection),
              (try_end),
            (try_end),
-     
+            
            #for only server itself-----------------------------------------------------------------------------------------------
            (call_script, "script_show_multiplayer_message", multiplayer_message_type_auto_team_balance_done, 0), #0 is useless here
            #for only server itself-----------------------------------------------------------------------------------------------     
@@ -6041,7 +6042,6 @@ scripts = [
    [
      (store_script_param, ":killer_agent_no", 1),
      (store_script_param, ":dead_agent_no", 2),
-
      (try_begin),
        (multiplayer_is_server),
        (ge, ":killer_agent_no", 0),
@@ -6115,7 +6115,11 @@ scripts = [
          (else_try),
            (val_add, ":player_gold", ":share_of_dead_agent"), #(3/3x) share if current mod is siege
          (try_end),
-		 (player_set_gold, ":player_no", ":player_gold", multi_max_gold_that_can_be_stored),
+          (call_script, "script_dy_calculate_combat_gold"),
+          (assign, ":dy_bonus_gold", reg0),
+          (player_get_gold, ":player_gold", ":player_no"),
+          (val_add, ":player_gold", ":dy_bonus_gold"),
+   		 (player_set_gold, ":player_no", ":player_gold", multi_max_gold_that_can_be_stored),
        (try_end),
        
        (try_begin),         
@@ -6204,7 +6208,11 @@ scripts = [
            (val_add, ":player_gold", ":share_of_killer_agent"),
 		 (try_end),
 		   
-		 (player_set_gold, ":player_no", ":player_gold", multi_max_gold_that_can_be_stored),
+		 (call_script, "script_dy_calculate_combat_gold"),
+       (assign, ":dy_bonus_gold", reg0),
+       (player_get_gold, ":dy_player_gold", ":player_no"),
+       (val_add, ":dy_player_gold", ":dy_bonus_gold"),
+       (player_set_gold, ":player_no", ":dy_player_gold", multi_max_gold_that_can_be_stored),
 	   (else_try),
          (agent_get_player_id, ":player_no", ":killer_agent_no"),
          (eq, ":player_no", -1), #if killer agent is a bot
@@ -6225,8 +6233,11 @@ scripts = [
 	     (else_try),
 		   (val_add, ":player_gold", multi_killer_captain_add),
 	     (try_end),
-		 (player_set_gold, ":agent_group", ":player_gold", multi_max_gold_that_can_be_stored),
-       (try_end),
+       (call_script, "script_dy_calculate_combat_gold"),
+       (assign, ":dy_bonus_gold", reg0),
+       (player_get_gold, ":dy_player_gold", ":agent_group"),
+       (val_add, ":dy_player_gold", ":dy_bonus_gold"),
+       (player_set_gold, ":agent_group", ":dy_player_gold", multi_max_gold_that_can_be_stored),
      (try_end),
      #(below lines added new at 25.11.09 after Armagan decided new money system)
      (try_begin),
@@ -6255,34 +6266,12 @@ scripts = [
          (lt, ":player_gold", ":minimum_gold"),
          (assign, ":player_gold", ":minimum_gold"),
        (try_end),
-	   (player_set_gold, ":dead_agent_player_id", ":player_gold"),
+       (call_script, "script_dy_calculate_combat_gold"),
+       (assign, ":dy_bonus_gold", reg0),
+       (player_get_gold, ":dy_player_gold", ":dead_agent_player_id"),
+       (val_add, ":dy_player_gold", ":dy_bonus_gold"),
+       (player_set_gold, ":dead_agent_player_id", ":dy_player_gold", multi_max_gold_that_can_be_stored), 
      (try_end),
-     #new money system addition end          
-     #OiM addition for money system
-     (try_begin),
-       (multiplayer_is_server),
-       #we add gold to player if bot kill enemy
-       #multi_killer_captain_add
-       (eq, "$g_multiplayer_is_game_type_captain", 1),
-       #(store_script_param, ":killer_agent_no", 1),
-       #(store_script_param, ":dead_agent_no", 2),
-       (ge, ":killer_agent_no", 0),
-       (ge, ":dead_agent_no", 0),
-       (agent_is_human, ":killer_agent_no"),
-       (agent_is_non_player, ":killer_agent_no"),
-       (agent_get_group, ":agent_group", ":killer_agent_no"), # get the controlling player of this bot
-       (agent_get_team, ":killer_team", ":killer_agent_no"), 
-       (agent_get_team, ":dead_team", ":dead_agent_no"), 
-       (neq, ":killer_team", ":dead_team"), 
-       (player_is_active, ":agent_group"),
-       (player_get_gold, ":player_gold", ":agent_group"),
-	   (try_begin),
-		 (neq, "$g_multiplayer_game_type", multiplayer_game_type_captain_coop),
-		 (val_add, ":player_gold", multi_killer_captain_add),
-	   (try_end),
-	   (player_set_gold, ":agent_group", ":player_gold", multi_max_gold_that_can_be_stored),
-     (try_end), 
-     #OiM addition end
    ]),
 
 
@@ -7115,7 +7104,17 @@ scripts = [
          (assign, ":initial_gold", multi_initial_gold_value),
          (val_mul, ":initial_gold", "$g_multiplayer_initial_gold_multiplier"),
          (val_div, ":initial_gold", 100),
-         (player_set_gold, ":player_no", ":initial_gold"),
+         (try_begin),
+            (this_or_next|lt, "$g_total_team_1_players", "$g_min_plyr_enable_dyn_sqds"),
+            (le, "$g_multiplayer_ccoop_wave_no", 1),
+            (player_set_gold, ":player_no", ":initial_gold"),
+         (else_try),
+            (ge, "$g_total_team_1_players", "$g_min_plyr_enable_dyn_sqds"),
+            (call_script, "script_dy_calculate_starting_wage"),
+            (assign, ":dy_bonus_gold", reg0),
+            (store_mul, ":dy_bonus_gold", ":dy_bonus_gold", "$g_multiplayer_squad_size"),
+            (player_set_gold, ":player_no", ":dy_bonus_gold"),
+         (try_end),
          (call_script, "script_multiplayer_send_initial_information", ":player_no"),
        (try_end),
      (try_end),
@@ -7126,9 +7125,10 @@ scripts = [
   # OUTPUT: none
   ("multiplayer_server_before_mission_start_common",
    [
-   
-		(display_debug_message, "@{!}multiplayer_server_before_mission_start_common"),
-   
+      (try_begin),
+      (eq, "$g_daimyo_debug_mode", 1),
+		(display_message, "@{!}multiplayer_server_before_mission_start_common"),
+      (try_end),
      (try_begin),
        (scene_allows_mounted_units),
        (assign, "$g_horses_are_avaliable", 1),
@@ -7139,7 +7139,7 @@ scripts = [
      (assign, "$g_multiplayer_mission_end_screen", 0),
 
      (get_max_players, ":num_players"),
-     (try_for_range, ":player_no", 0, ":num_players"),
+     (try_for_range, ":player_no", 1, ":num_players"),
        (player_is_active, ":player_no"),
        (call_script, "script_multiplayer_init_player_slots", ":player_no"),
        (assign, ":initial_gold", multi_initial_gold_value),
@@ -7627,7 +7627,7 @@ scripts = [
    [
      (assign, ":number_of_players", 0),
      (get_max_players, ":num_players"),
-     (try_for_range, ":player_no", 0, ":num_players"),
+     (try_for_range, ":player_no", 1, ":num_players"),
        (player_is_active, ":player_no"),
        (val_add, ":number_of_players", 1),
      (try_end),
@@ -7766,7 +7766,7 @@ scripts = [
    [
      (assign, ":number_of_players", 0),
      (get_max_players, ":num_players"),
-     (try_for_range, ":player_no", 0, ":num_players"),
+     (try_for_range, ":player_no", 1, ":num_players"),
        (player_is_active, ":player_no"),
        (val_add, ":number_of_players", 1),
      (try_end),
@@ -8241,7 +8241,7 @@ scripts = [
         (eq, ":event_type", multiplayer_event_change_team_no),
         (store_script_param, ":value", 3),
 		(assign, reg0, ":value"),
-		#(display_debug_message, "@{!}multiplayer_event_change_team_no is received with team_no: {reg0}"),
+		#(display_message, "@{!}multiplayer_event_change_team_no is received with team_no: {reg0}"),
         (try_begin),
           #validity check
           (player_get_team_no, ":player_team", ":player_no"),
@@ -8260,16 +8260,16 @@ scripts = [
       
               (store_mission_timer_a, ":player_last_team_select_time"),         
               (player_set_slot, ":player_no", slot_player_last_team_select_time, ":player_last_team_select_time"),
-			  #(display_debug_message, "@{!}multiplayer_event_change_team_no is accepted"),
+			  #(display_message, "@{!}multiplayer_event_change_team_no is accepted"),
               (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_confirmation),
             (try_end),
           (else_try),
-			#(display_debug_message, "@{!}multiplayer_event_change_team_no is rejected"),
+			#(display_message, "@{!}multiplayer_event_change_team_no is rejected"),
             #reject request
             (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_rejection),
           (try_end),
 		(else_try), # team is the same, confirm the change. servers use this for themselves.
-		  #(display_debug_message, "@{!}multiplayer_event_change_team_no is accepted because it is already the same."),
+		  #(display_message, "@{!}multiplayer_event_change_team_no is accepted because it is already the same."),
 		  (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_confirmation),
         (try_end),
       (else_try),
@@ -8319,7 +8319,7 @@ scripts = [
           (team_set_faction, 1, "$g_multiplayer_next_team_2_faction"),
 		  (try_begin),
 		    (eq, "$g_multiplayer_game_type", multiplayer_game_type_captain_coop),
-			(assign, "$g_multiplayer_squad_size", 6), #squad size is constant for coop
+			(assign, "$g_multiplayer_squad_size", 10), #squad size is constant for coop
 		  (try_end),
           (call_script, "script_game_multiplayer_get_game_type_mission_template", "$g_multiplayer_game_type"),
           (start_multiplayer_mission, reg0, "$g_multiplayer_selected_map", 1),
@@ -8332,7 +8332,7 @@ scripts = [
           (player_is_admin, ":player_no"),
           (is_between, ":value", 2, 65),
           #condition checks are done
-          (server_set_max_num_players, ":value"),      
+          (server_set_max_num_players, "$g_admin_override_max_players"),     #Daimyo Admin Override  (assign, "$g_admin_override_max_players", 30),
         (try_end),
       (else_try),
         (eq, ":event_type", multiplayer_event_admin_set_num_bots_in_team),
@@ -8684,7 +8684,7 @@ scripts = [
           (server_get_changing_game_type_allowed, "$g_multiplayer_changing_game_type_allowed"),
           (multiplayer_send_int_to_player, ":player_no", multiplayer_event_return_changing_game_type_allowed, "$g_multiplayer_changing_game_type_allowed"),
           (server_get_max_num_players, ":max_num_players"),
-          (multiplayer_send_int_to_player, ":player_no", multiplayer_event_return_max_num_players, ":max_num_players"),
+          (multiplayer_send_int_to_player, ":player_no", multiplayer_event_return_max_num_players, 30), #DY ADMIN OVERRIDE
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_return_next_team_faction, 1, "$g_multiplayer_next_team_1_faction"),
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_return_next_team_faction, 2, "$g_multiplayer_next_team_2_faction"),
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_return_num_bots_in_team, 1, "$g_multiplayer_num_bots_team_1"),
@@ -8873,10 +8873,12 @@ scripts = [
         (eq, ":event_type", multiplayer_event_answer_to_poll),
         (try_begin),
           (store_script_param, ":value", 3),
+
           #validity check
           (eq, "$g_multiplayer_poll_running", 1),
           (is_between, ":value", 0, 2),
           (player_slot_eq, ":player_no", slot_player_can_answer_poll, 1),
+
           #condition checks are done
           (player_set_slot, ":player_no", slot_player_can_answer_poll, 0),
           (try_begin),
@@ -9194,12 +9196,12 @@ scripts = [
 				#(assign, reg1, "$g_multiplayer_ccoop_wave_no"),
 				#(try_begin),
 				#  (eq, ":value", multiplayer_event_other_event_ccoop_count_down_visible),
-				#  (display_debug_message, "@{!}multiplayer_event_other_event_ccoop_count_down_visible"),
+				#  (display_message, "@{!}multiplayer_event_other_event_ccoop_count_down_visible"),
 				#(else_try),
-				#  (display_debug_message, "@{!}AAAAAAAAAmultiplayer_event_other_event_ccoop_count_down_invisible"),
+				#  (display_message, "@{!}AAAAAAAAAmultiplayer_event_other_event_ccoop_count_down_invisible"),
 				#(try_end),
 				#(assign, reg1, "$g_multiplayer_ccoop_wave_no"),
-				#(display_debug_message, "@{!}ONEMLI SANIYE:{reg0} DALGA:{reg1}"),
+				#(display_message, "@{!}ONEMLI SANIYE:{reg0} DALGA:{reg1}"),
 				#
 				
 				(assign, "$g_multiplayer_ccoop_enable_count_down", 1),
@@ -9365,6 +9367,7 @@ scripts = [
 			(try_end),
 			
       (else_try),
+
         ###############
         #CLIENT EVENTS#
         ###############
@@ -11553,23 +11556,40 @@ scripts = [
 		(this_or_next|eq, ":game_type", multiplayer_game_type_captain_coop),
         (             eq, ":game_type", multiplayer_game_type_captain_team_deathmatch),
 		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin, "scn_mp_old_castle"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 1, "scn_mp_arena"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 2, "scn_mp_swamp_delta"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 3, "scn_mp_polya"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 4, "scn_mp_hillroad"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 5, "scn_mp_hutor"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 6, "scn_mp_marketplace"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 7, "scn_mp_forest_edge"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 8, "scn_mp_forest_road"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 9, "scn_mp_river_village"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 10, "scn_mp_new_1"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 11, "scn_mp_new_2"),
-		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 12, "scn_mp_new_3"),
-        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 13, "scn_random_multi_plain_medium"),
-        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 14, "scn_random_multi_plain_large"),
-        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 15, "scn_random_multi_steppe_medium"),
-        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 16, "scn_random_multi_steppe_large"),
-        (assign, ":num_maps", 17),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 1, "scn_mp_arena"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 2, "scn_mp_swamp_delta"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 3, "scn_mp_polya"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 4, "scn_mp_hillroad"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 5, "scn_mp_hutor"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 6, "scn_mp_marketplace"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 7, "scn_mp_forest_edge"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 8, "scn_mp_forest_road"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 9, "scn_mp_river_village"),
+        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 10, "scn_random_multi_plain_medium"),
+        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 11, "scn_random_multi_plain_large"),
+        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 12, "scn_random_multi_steppe_medium"),
+        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 13, "scn_random_multi_steppe_large"),
+        (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 14, "scn_mp_new_1"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 15, "scn_mp_new_2"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 16, "scn_mp_new_3"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 17, "scn_mp_carpathian"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 18, "scn_mp_yasna"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 19, "scn_mp_edge_of_hell"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 20, "scn_mp_smolensk"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 21, "scn_mp_river_fortress"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 22, "scn_mp_fortress"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 23, "scn_mp_caligulas_orgy"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 24, "scn_mp_city_of_vamps"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 25, "scn_mp_crevasse"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 26, "scn_mp_giants_path"),
+      (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 27, "scn_mp_edge"),
+     (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 28, "scn_mp_totalwar"),
+     (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 29, "scn_mp_troy_invasion"),
+     (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 30, "scn_mp_intersburg"),
+     (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 31, "scn_mp_steppefort"),
+     (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 32, "scn_mp_fakriye_castle"),
+     (troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin + 33, "scn_mp_bohus_fortress"),
+      (assign, ":num_maps", 34),
       (else_try),
         (eq, ":game_type", multiplayer_game_type_capture_the_flag),
 		(troop_set_slot, "trp_multiplayer_data", multi_data_maps_for_game_type_begin, "scn_mp_old_castle"),
@@ -42691,7 +42711,7 @@ scripts = [
 		
 		#MCA
 		#(assign, reg0, ":player_id"),
-		#(display_debug_message, "@{!}mp_clear_squad_info for player {reg0}"),
+		#(display_message, "@{!}mp_clear_squad_info for player {reg0}"),
 		
 		(try_for_range, ":slot_id", slot_player_captain_bot_data_begin, slot_player_captain_bot_data_end),
 		  (player_set_slot, ":player_id", ":slot_id", 0),
@@ -42711,7 +42731,7 @@ scripts = [
 		#(assign, reg0, ":player_id"),
 		#(assign, reg1, ":troop_id"),
 		#(assign, reg2, ":add_count"),
-		#(display_debug_message, "@{!}add troop  player id: {reg0} troop id: {reg1} count: {reg2}"),
+		#(display_message, "@{!}add troop  player id: {reg0} troop id: {reg1} count: {reg2}"),
 		
 		# limit add count by max squad size
 		(call_script, "script_multiplayer_get_requested_squad_count", ":player_id"),
@@ -42792,7 +42812,7 @@ scripts = [
 		(assign, reg0, ":total_troops_cost"),
 		(assign, reg1, ":total_bot_count"),
 		
-		#(display_debug_message, "@{!}squad cost: {reg0} total squad: {reg1}"),
+		#(display_message, "@{!}squad cost: {reg0} total squad: {reg1}"),
 	]), 
 	
 	# script_mp_get_player_alive_squad_cost
@@ -42880,7 +42900,7 @@ scripts = [
 		#MCA
 	#	(assign, reg1, ":troop_id"),
 	#	(assign, reg2, ":player_id"),
-	#	(display_debug_message, "@{!}alive troop ({reg1}) count: {reg0} for player {reg2}"),
+	#	(display_message, "@{!}alive troop ({reg1}) count: {reg0} for player {reg2}"),
 	]),
 	
 	# script_mp_get_player_total_alive_troop_count
@@ -42914,7 +42934,7 @@ scripts = [
 		
 		#MCA
 	#	(assign, reg2, ":player_id"),
-	#	(display_debug_message, "@{!}total alive troop count: {reg0} for player {reg2}"),
+	#	(display_message, "@{!}total alive troop count: {reg0} for player {reg2}"),
 	]),
 	
 	# script_multiplayer_spawn_player_bot_squad_at_point
@@ -43136,20 +43156,15 @@ scripts = [
 				(try_begin),
 					(eq, ":agent_group", ":player_no"), 
 					(eq, ":agent_team", ":player_team"), 
-					
-					## increase player's kill count by 2 since death of each squad member will cause -2 score on team change
-					#(player_get_kill_count, ":player_kill_count", ":player_no"),
-					#(val_add, ":player_kill_count", 2),
-					#(player_set_kill_count, ":player_no", ":player_kill_count"),
-					## also decrease death by 2 for the same reason
-					#(player_get_death_count, ":player_death_count", ":player_no"),
-					#(val_sub, ":player_death_count", 2),
-					#(player_set_death_count, ":player_no", ":player_death_count"),
-					
-					#(call_script, "script_add_kill_death_counts", ":player_agent", ":agent_no"),
-					(remove_agent, ":agent_no"),
+
+               (team_give_order, ":player_no", grc_everyone, mordr_charge),
+               (team_give_order, ":player_no", grc_everyone, mordr_fire_at_will),
+               (team_give_order, ":player_no", grc_everyone, mordr_use_any_weapon),
+               (team_give_order, ":player_no", grc_everyone, mordr_form_2_row),
+               (agent_set_slot, ":agent_no", slot_agent_player_leader_gone, 1),
+               #"$g_multiplayer_squad_size"
 				(try_end), 
-			(try_end), 	
+			(try_end), 
 		(try_end), 
 	]), 
 	
@@ -43157,23 +43172,35 @@ scripts = [
 	[
 		(store_script_param, ":dead_agent_no", 1), 
 		#code
-		(store_current_scene, ":scene"), 
+		#(store_current_scene, ":scene"), 
 		(try_begin), 
 			#(eq, 0, 1), 
-			(eq, ":scene", "scn_mp_marketplace"), 
+			#(eq, ":scene", "scn_mp_marketplace"), 
 			(gt, ":dead_agent_no", -1),
 			(agent_is_human, ":dead_agent_no"),
 			(agent_get_horse, ":horse_agent", ":dead_agent_no"), 
 			(gt, ":horse_agent", -1), 
 			(agent_is_alive, ":horse_agent"),
 			(store_random_in_range, ":random", 0, 100), 
-			(try_begin), 
-				(ge, ":random", 40), 
+			(try_begin), #ON_HORSE_KILLED
+				(lt, ":random", 40), #ge, is a condition for >=
 				(remove_agent, ":horse_agent"), 
 			(else_try), 
-				(store_random_in_range, ":point_no", 90, 92), 
-				(entry_point_get_position, pos0, ":point_no"),
-				(agent_set_scripted_destination, ":horse_agent", pos0, 1), 
+            (try_begin),
+               (agent_slot_eq, ":horse_agent", slot_agent_is_stray_horse, 1),
+               (store_mission_timer_a, ":cur_time"),
+               (agent_set_slot, ":horse_agent", slot_agent_stray_horse_timer, ":cur_time"), #set times
+               #(display_message, "@DEATH: slot_agent_is_stray_horse 1"),
+            (else_try),
+               (agent_slot_eq, ":horse_agent", slot_agent_is_player_horse, 1),
+               (store_mission_timer_a, ":cur_time"),
+               (val_sub, ":cur_time", 240),
+               (agent_set_slot, ":horse_agent", slot_agent_player_horse_timer, ":cur_time"), #set time
+               #(display_message, "@DEATH: slot_agent_is_player_horse 1"),
+            (try_end),
+			#	(store_random_in_range, ":point_no", 90, 92), 
+			#	(entry_point_get_position, pos0, ":point_no"),
+			#	(agent_set_scripted_destination, ":horse_agent", pos0, 1), 
 			(try_end), 
 		(try_end), 
 	]), 
@@ -43925,26 +43952,24 @@ scripts = [
 	("game_event_agent_dismounted", 
 	[
 		# this script is disabled due to bugs related with it. and also it seems over-protective.
-		
-		# (store_script_param, ":agent_no", 1),       
-		# (try_begin),
-			# (agent_is_active, ":agent_no"), 
-			# (assign, ":has_item", -1),
-			# (assign, ":replace_item", -1),
-			# (try_begin), 
-				# (agent_has_item_equipped, ":agent_no", "itm_gusar_lanza"),
-				# (assign, ":has_item", "itm_gusar_lanza"),
-				# (assign, ":replace_item", "itm_sablya_a"),
-			# (else_try),
-				# (agent_has_item_equipped, ":agent_no", "itm_gusar_lanza_b"),
-				# (assign, ":has_item", "itm_gusar_lanza_b"),
-				# (assign, ":replace_item", "itm_sablya_d"),
-			# (try_end), 	
-			# (try_begin),
-				# (gt, ":replace_item", 0),
-				# (agent_unequip_item, ":agent_no", ":has_item"),
-				# (agent_equip_item, ":agent_no", ":replace_item"),
-			# (try_end),
+		(store_script_param, ":agent_no", 1), 
+		#code
+		#(store_current_scene, ":scene"), 
+		(try_begin), 
+			#(eq, 0, 1), 
+			#(eq, ":scene", "scn_mp_marketplace"), 
+			(gt, ":agent_no", -1),
+			(agent_is_human, ":agent_no"),
+			(agent_is_non_player, ":agent_no"),
+			#(neg|agent_is_defender, ":agent_no"),
+         (neg|agent_is_ally, ":agent_no"),
+			(agent_get_horse, ":horse_agent", ":agent_no"), 
+			(gt, ":horse_agent", -1), 
+			(agent_is_alive, ":horse_agent"),
+			#(agent_get_rider, ":agent_rider", ":agent_no"),
+			#(eq, ":agent_rider", -1),
+			(agent_fade_out, ":horse_agent"),
+		(try_end), 
 		# (try_end), 	
 	]), 
 	
@@ -43960,7 +43985,7 @@ scripts = [
          (try_end),
          (assign, reg0, ":count"),
 	]), 
-	
+	#script_get_alive_enemies_count
 	("get_alive_enemies_count",
 	[
 		(store_script_param, ":team_no", 1),
@@ -43990,24 +44015,44 @@ scripts = [
 			(try_begin),
 				(eq, ":spawn_point1", ":spawn_point2"),
 				(assign, ":spawn_point2", -1),
+            (assign, "$g_enemy_spawn_point_1", ":spawn_point1"),
+            (assign, "$g_enemy_spawn_point_2", ":spawn_point2",),
+         (else_try),
+            (assign, "$g_enemy_spawn_point_1", ":spawn_point1"),
+            (assign, "$g_enemy_spawn_point_2", ":spawn_point2"),
 			(end_try),
 			
 			(store_mod, ":wave_no_mod", "$g_multiplayer_ccoop_wave_no", 10),
 
 			(assign, ":cur_tier", 100),
-			(assign, ":num_troops_for_wave", 4),
+			(assign, ":num_troops_for_wave", 8),
+
 			(assign, ":number_of_players_at_team_1", 0),
 			(get_max_players, ":num_players"),
-			(try_for_range, ":cur_player", 0, ":num_players"),
+			
+			(try_for_range, ":cur_player", 1, ":num_players"),
 				(player_is_active, ":cur_player"),
 				(player_get_team_no, ":player_team", ":cur_player"),
 				(eq, ":player_team", 0),
 				(val_add, ":number_of_players_at_team_1", 1),
 			(try_end),
 			
-			(assign, reg0, ":number_of_players_at_team_1"), #debug, delete
-			
-			(val_sub, ":number_of_players_at_team_1", 1), # for simplifying the formula
+			#(assign, ":player_squad_size", 5), #Assuming squads are 10
+			#(store_mul, ":player_squad_size", ":number_of_players_at_team_1", ":player_squad_size"),
+			#(val_add, ":player_squad_size", ":number_of_players_at_team_1"),
+			#(assign, ":num_troops_for_wave", ":player_squad_size"),
+			#(assign, reg0, ":number_of_players_at_team_1"), #debug, delete
+			(try_begin), #Whatever g_max_team_1_agents is set to, itll factor based on that only when 20 players or less, else 21,22,23,24 etc..
+            (gt, "$g_multiplayer_ccoop_wave_no", 1),
+            (le, ":number_of_players_at_team_1", 20),
+            (ge, "$g_total_team_1_players", "$g_min_plyr_enable_dyn_sqds"),
+   			#(assign, ":number_of_players_at_team_1", 20), # Since num troops always will be same
+            (store_div, ":number_of_players_at_team_1", "$g_max_team_1_agents", 10),
+         (try_end),
+         
+         
+
+
 			(try_for_range, ":cur_multiplier", 1, 4),
 				(gt, ":number_of_players_at_team_1", 0),
 				(store_mul, ":used_multiplier", ":cur_multiplier", 2),
@@ -44021,6 +44066,7 @@ scripts = [
 			(try_begin),
 				(le, "$g_multiplayer_ccoop_wave_no", 3),
 				(assign, ":spawn_point2", -1), # for the first 3 waves, spawn from only 1 point
+            (assign, "$g_enemy_spawn_point_2", ":spawn_point2"),
 			(try_end),
 			
 			(try_begin),
@@ -44177,7 +44223,7 @@ scripts = [
 				(else_try),
 					(eq, ":cur_scheme", 10),
 					# [0] 25%, [0] 25%, [0] 25%, [0] 25%
-					(troop_set_slot, "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin, 4),
+					(troop_set_slot, "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin, 4), #determines how many troop types
 					(troop_set_slot, "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin + 1, 0),
 					(troop_set_slot, "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin + 2, 25),
 					(troop_set_slot, "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin + 3, 0),
@@ -44298,8 +44344,10 @@ scripts = [
 			(assign, reg0, ":tier_dif"), # debug
 			(assign, reg1, ":avg_tier"), # debug
 			(assign, reg2, ":cur_tier"), # debug
-			(display_debug_message, "@{!}avg tier is {reg1} cur tier is {reg2} tier dif is {reg0}"),
-			
+         (try_begin),
+         (eq, "$g_daimyo_debug_mode", 1),
+			(display_message, "@{!}avg tier is {reg1} cur tier is {reg2} tier dif is {reg0}"),
+			(try_end),
 			(try_begin),
 				(eq, ":wave_no_mod", 0),
 				(assign, ":wave_no_mod", 10),
@@ -44309,19 +44357,158 @@ scripts = [
 			(val_add, ":wave_effect_on_troops", ":tier_dif"), # tier difference is added to the multiplier.
 			(val_mul, ":num_troops_for_wave", ":wave_effect_on_troops"),
 			(val_div, ":num_troops_for_wave", 100),
-			(try_begin),
-				(gt, "$g_multiplayer_ccoop_wave_no", 20), # wave++ mode, 30% more troops
-				(val_mul, ":num_troops_for_wave", 130),
+			(try_begin), #Enemy Numbers
+            (eq, "$g_multiplayer_ccoop_wave_no", 30), # == wave 30 300% more troops *BEFORE KEY MOD 385
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 550), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 520), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 500), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 480), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 460), 
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
+         (else_try),
+            (eq, "$g_multiplayer_ccoop_wave_no", 29), # == wave 29 200% mode (last mod 275)
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 500), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 480),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 460),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 440), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 420),
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
+         (else_try),
+            (eq, "$g_multiplayer_ccoop_wave_no", 20), # == wave 20 200% mode *BEFORE KEY MOD 325
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 440), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 400),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 380),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 360), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 340),
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
+         (else_try),
+            (eq, "$g_multiplayer_ccoop_wave_no", 19), # == wave 19 125% mode (last mod 225)
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 380), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 360),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 340),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 320), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 300),
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
+         (else_try),
+            (eq, "$g_multiplayer_ccoop_wave_no", 10), # == wave 10 100% mode *BEFORE KEY MOD 250
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 320), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 300),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 280),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 260), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 240),
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
+         (else_try),
+            (eq, "$g_multiplayer_ccoop_wave_no", 9), # == wave 9 80% mode (was 160)
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 280), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 260),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 240),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 220), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 200),
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
+         (else_try),
+				(gt, "$g_multiplayer_ccoop_wave_no", 20), # > wave 20 wave++ mode, 125% more troops | 160 = 60% etc last mod 225
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 440), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 420),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 400),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 380), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 360),
+              (try_end),
 				(val_div, ":num_troops_for_wave", 100),
 			(else_try),
-				(gt, "$g_multiplayer_ccoop_wave_no", 10), # wave+ mode, 20% more troops
-				(val_mul, ":num_troops_for_wave", 120),
-				(val_div, ":num_troops_for_wave", 100),
+				(gt, "$g_multiplayer_ccoop_wave_no", 10), # > wave 10 wave+ mode, 90% more troops Last mod 190
+              (try_begin),
+                  (gt, "$g_total_team_1_players", 20),
+                  (val_mul, ":num_troops_for_wave", 350), 
+              (else_try),
+                  (gt, "$g_total_team_1_players", 15),
+                  (val_mul, ":num_troops_for_wave", 330),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 10),
+                  (val_mul, ":num_troops_for_wave", 310),
+              (else_try),
+                  (gt, "$g_total_team_1_players", 5),
+                  (val_mul, ":num_troops_for_wave", 290), 
+              (else_try), #Normal
+                  (val_mul, ":num_troops_for_wave", 270),
+              (try_end),
+            (val_div, ":num_troops_for_wave", 100),
 			(try_end),
 			(assign, reg1, ":num_troops_for_wave"), #debug, delete
-			(display_debug_message, "@{!}real num troops for {reg0} players: {reg1}"),
-			
+         (try_begin),
+         (eq, "$g_daimyo_debug_mode", 1),
+			(display_message, "@{!}real num troops for {reg0} players: {reg1}"),
+			(try_end),
 			(assign, ":num_troops_ready_for_wave", 0),
+         #(assign, ":num_cav_units", 0),
 			(try_for_range, ":cur_bot_readying", 0, ":num_bot_types"),
 				(try_begin),
 					(store_add, ":cur_bot_readying_plus_one", ":cur_bot_readying", 1),
@@ -44331,7 +44518,7 @@ scripts = [
 				(else_try),
 					(store_mul, ":cur_slot", ":cur_bot_readying", 3),
 					(val_add, ":cur_slot", multi_data_ccoop_wave_spawn_data_begin + 2),
-					(troop_get_slot, ":troop_count_percentage", "trp_multiplayer_data", ":cur_slot"),
+					(troop_get_slot, ":troop_count_percentage", "trp_multiplayer_data", ":cur_slot"), #Percent of that unit type selected
 					(store_mul, ":used_troop_count", ":num_troops_for_wave", ":troop_count_percentage"),
 					(val_div, ":used_troop_count", 100),
 				(try_end),
@@ -44359,12 +44546,29 @@ scripts = [
 				(store_mul, ":used_troop_key", ":used_tier", 10),
 				(val_add, ":used_troop_key", ":used_troop_type"),
 				
+            (try_begin), #DY Debug MOD troop type
+               (this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 10),
+               (this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 20),
+               (eq, "$g_multiplayer_ccoop_wave_no", 30),
+               (store_random_in_range, ":used_troop_key", 41, 44),
+            (try_end),
+            #(try_begin),
+            #      (eq, ":used_troop_key", 43),
+            #      (val_add, ":num_cav_units", 1),
+            #      (ge, ":num_cav_units", ":num_bot_types"),
+            #      (assign, "$g_dy_reduce_enemy_spawn", 1),
+            #   (else_try),
+            #      (lt, ":num_cav_units", ":num_bot_types"),
+            #      (assign, "$g_dy_reduce_enemy_spawn", 0),
+            #   (try_end),
 				(assign, reg0, ":used_troop_key"), # debug
 				(assign, reg1, ":used_tier"), # debug
 				(assign, reg2, ":used_troop_type"), # debug
 				(assign, reg3, ":selected_troop"), # debug
-				(display_debug_message, "@{!}used_tier is {reg1} used troop type is {reg2} used troop key is {reg0} selected troop is {reg3}"),
-				
+            (try_begin),
+            (eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}used_tier is {reg1} used troop type is {reg2} used troop key is {reg0} selected troop is {reg3}"),
+				(try_end),
 				(try_for_range, ":troop_array_index", 0, 3),
 					(ge, ":selected_troop", 0),
 					(try_begin),
@@ -44389,7 +44593,10 @@ scripts = [
 						(assign, ":used_troop_no", ":cur_troop"),
 						
 						(assign, reg0, ":used_troop_no"), # debug
-						(display_debug_message, "@{!}used troop no is {reg0}"),
+                  (try_begin),
+                  (eq, "$g_daimyo_debug_mode", 1),
+						(display_message, "@{!}used troop no is {reg0}"),
+                  (try_end),
 					(try_end),
 				(try_end),
 				
@@ -44426,7 +44633,21 @@ scripts = [
 	[
 		(try_begin),
 			(multiplayer_is_server),
-			(assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 300),  #5min
+         (try_begin),
+            (assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 240),  #4min normal maps
+            (eq, "$g_map_scale", 1),
+            (assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 210),  #3.5min scaled maps.
+         (try_end),
+         (try_begin),
+          (this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 10),
+          (this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 20),
+          (eq, "$g_multiplayer_ccoop_wave_no", 30),
+          (assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 270),  #4.5min for main waves
+         (try_begin),
+            (eq, "$g_map_scale", 1),
+            (assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 240),  #3.5min scaled maps.
+         (try_end),
+         (try_end),
 			
 			(store_sub, ":wave_no", "$g_multiplayer_ccoop_wave_no", 1),
 			(val_max, ":wave_no", 0),
@@ -44443,12 +44664,32 @@ scripts = [
 				(val_div, "$g_multiplayer_ccoop_enemy_respawn_secs", 2),				
 			(try_end),
 						
+          #daimyo Get mid reinforcement spawn    
+         # (store_div, "$g_respawn_mid_reinforcement_counter", "$g_multiplayer_ccoop_enemy_respawn_secs", 2),
+         # (assign, "$g_mid_reinforcements_spawned_this_wave", 0), #set to 0 to enable
+
+         (try_begin),
+         #(this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 10),
+          #(this_or_next|eq, "$g_multiplayer_ccoop_wave_no", 20),
+          (eq, "$g_multiplayer_ccoop_wave_no", 30),
+          (le, "$g_reinforcement_tier_3", 0),
+          (val_add, "$g_reinforcement_tier_3", 1),
+          (gt, "$g_reinforcement_tier_3", 2),
+          (assign, "$g_reinforcement_tier_3", 2),
+         (try_end),
+
 			(get_max_players, ":num_players"),
 			(try_for_range, ":cur_player", 1, ":num_players"),
 				(player_is_active, ":cur_player"),
 				(assign, reg0, ":cur_player"),
-				(display_debug_message, "@{!}sending message to {reg0} multiplayer_event_other_event_ccoop_count_down_invisible"),
-				(multiplayer_send_3_int_to_player, ":cur_player", multiplayer_event_other_events, multiplayer_event_other_event_ccoop_count_down_invisible, "$g_multiplayer_ccoop_enemy_respawn_secs", "$g_multiplayer_ccoop_wave_no"),
+            (try_begin),
+            (eq, "$g_daimyo_debug_mode", 1),
+            (try_begin),
+            (eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}sending message to {reg0} multiplayer_event_other_event_ccoop_count_down_invisible"),
+            (try_end),
+				(try_end),
+            (multiplayer_send_3_int_to_player, ":cur_player", multiplayer_event_other_events, multiplayer_event_other_event_ccoop_count_down_invisible, "$g_multiplayer_ccoop_enemy_respawn_secs", "$g_multiplayer_ccoop_wave_no"),
 			(try_end),
 		(try_end),
 	]),
@@ -44499,8 +44740,10 @@ scripts = [
 			(store_script_param, ":spawn_required", 1),
 			
 			(assign, reg0, ":spawn_required"), # debug
-			(display_debug_message, "@{!}spawn required is: {reg0}"),
-			
+         (try_begin),
+         (eq, "$g_daimyo_debug_mode", 1),
+			(display_message, "@{!}spawn required is: {reg0}"),
+			(try_end),
 			(assign, ":num_troops_for_wave", 0),
 			
 			(troop_get_slot, ":num_bot_types", "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin),
@@ -44512,8 +44755,10 @@ scripts = [
 			(try_end),
 
 			(assign, reg0, ":num_troops_for_wave"), # debug
-			(display_debug_message, "@{!}num_troops_for_wave is {reg0}"),
-			
+         (try_begin),
+         (eq, "$g_daimyo_debug_mode", 1),
+			(display_message, "@{!}num_troops_for_wave is {reg0}"),
+			(try_end),
 			(assign, ":reduced_spawn_amount", 0),
 			(assign, ":reduced_spawn_amount_mod", 0),
 			(try_begin),
@@ -44524,14 +44769,34 @@ scripts = [
 				
 				(assign, reg0, ":reduced_spawn_amount"), # debug
 				(assign, reg1, ":reduced_spawn_amount_mod"), # debug
-				(display_debug_message, "@{!}num_troops_for_wave is gt spawn_required. reduced_spawn_amount is {reg0}, reduced_spawn_amount_mod is {reg1}"),
+            (try_begin),
+            #(eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}num_troops_for_wave is gt spawn_required. reduced_spawn_amount is {reg0}, reduced_spawn_amount_mod is {reg1}"),
+            (try_end),
 			(try_end),
-			
+			(try_begin),
+            #regulate over spawning
+            (gt, ":reduced_spawn_amount", "$g_enemy_allowed_alive_init_1"),
+            (assign, ":reduced_spawn_amount", "$g_enemy_allowed_alive_init_1"),
+          (try_end),
+
+         # (try_begin),
+         #    #regulate over spawning
+         #    (gt, ":num_bot_types", "$g_enemy_allowed_alive_init_1"),
+         #    (assign, ":num_bot_types", "$g_enemy_allowed_alive_init_1"),
+         #  (try_end),
+          
+            (assign, reg0, ":reduced_spawn_amount"), # debug
+          (try_begin),
+            #(eq, "$g_daimyo_debug_mode", 1),
+            (display_message, "@{!}num_troops_for_wave is gt spawn_required. reduced_spawn_amount is {reg0}, reduced_spawn_amount_mod is {reg1}"),
+            (try_end),
 			(store_current_scene, ":cur_scene"),
 			(modify_visitors_at_site, ":cur_scene"),
 			(assign, ":num_troops_spawned", 0),
 
 			(try_for_range, ":cur_bot_spawning", 0, ":num_bot_types"),
+            (le, ":num_troops_spawned", "$g_enemy_allowed_alive_init_1"),
 				(store_mul, ":cur_slot", ":cur_bot_spawning", 3),
 				(val_add, ":cur_slot", multi_data_ccoop_wave_spawn_data_begin + 1),
 				(troop_get_slot, ":spawned_troop_no", "trp_multiplayer_data", ":cur_slot"),
@@ -44540,7 +44805,10 @@ scripts = [
 				(assign, ":original_spawned_troop_count", ":spawned_troop_count"),
 				
 				(assign, reg0, ":original_spawned_troop_count"), # debug
-				(display_debug_message, "@{!}original_spawned_troop_count is {reg0}"),
+            (try_begin),
+            (eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}original_spawned_troop_count is {reg0}"),
+            (try_end),
 				
 				(val_add, ":cur_slot", 1),
 				(troop_get_slot, ":spawned_troop_entry_point", "trp_multiplayer_data", ":cur_slot"),
@@ -44552,17 +44820,31 @@ scripts = [
 					
 					(assign, reg0, ":cur_bot_spawning"), # debug
 					(assign, reg1, ":reduced_spawn_amount_mod"), # debug
-					(display_debug_message, "@{!}reducing spawn amount by one"),
+               (try_begin),
+               (eq, "$g_daimyo_debug_mode", 1),
+					(display_message, "@{!}reducing spawn amount by one"),
+               (try_end),
 				(try_end),
 				
 				(assign, reg0, ":cur_bot_spawning"), # debug
 				(assign, reg1, ":spawned_troop_entry_point"), # debug
 				(str_store_troop_name, s0, ":spawned_troop_no"), # debug
 				(assign, reg2, ":spawned_troop_count"), # debug
-				(display_debug_message, "@{!}spawning bot group {reg0}: {reg2} {s0} from entry point {reg1}"),
+            (try_begin),
+            (eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}spawning bot group {reg0}: {reg2} {s0} from entry point {reg1}"),
+            (try_end),
 
+            (le, "$g_global_enemy_count", "$g_enemy_allowed_alive_init_1"),
+            #DY lets try to cap ammount capable of spawning (this may cause count issues)
+            (try_begin),
+               (store_sub, ":troops_spawns_allowed", "$g_enemy_allowed_alive_1", "$g_global_enemy_count"), #enemy required 
+               (gt, ":spawned_troop_count", ":troops_spawns_allowed"), 
+               (assign, ":spawned_troop_count", ":troops_spawns_allowed"),
+            (try_end),
+            (gt, ":spawned_troop_count", 0), #check to see if allowed troop count is over 0
 				(add_visitors_to_current_scene, ":spawned_troop_entry_point", ":spawned_troop_no", ":spawned_troop_count", 1, -1),
-				(val_add, ":num_troops_spawned", ":spawned_troop_count"),
+            (val_add, ":num_troops_spawned", ":spawned_troop_count"),
 				(val_sub, ":original_spawned_troop_count", ":spawned_troop_count"),
 				(store_mul, ":cur_slot", ":cur_bot_spawning", 3),
 				(val_add, ":cur_slot", multi_data_ccoop_wave_spawn_data_begin + 2),
@@ -44587,14 +44869,39 @@ scripts = [
 			(multiplayer_is_server),
 			
 			(call_script, "script_multiplayer_ccoop_get_alive_enemy_count"),
-			(store_sub, ":free_enemy_slots", 100, reg0), #enemy required 
+         
+         
+          (assign, ":reinforce_percentage", 0),
+          (try_begin),
+            (eq, "$g_dy_reduce_enemy_spawn", 0),
+            (store_sub, ":free_enemy_slots", "$g_enemy_allowed_alive_1", reg0), #enemy required 
+            (assign, ":reinforce_percentage", "$g_enemy_allowed_reinforce_1"), 
+          (else_try),
+            (eq, "$g_dy_reduce_enemy_spawn", 1),
+            (store_sub, ":free_enemy_slots", "$g_enemy_allowed_alive_2", reg0), #enemy required 
+            (assign, ":reinforce_percentage", "$g_enemy_allowed_reinforce_2"),
+          (else_try),
+            (eq, "$g_dy_reduce_enemy_spawn", 2),
+            (store_sub, ":free_enemy_slots", "$g_enemy_allowed_alive_3", reg0), #enemy required 
+            (assign, ":reinforce_percentage", "$g_enemy_allowed_reinforce_3"),           
+          (try_end),
+
 			
 			(try_begin),
-				(ge, ":free_enemy_slots", 50),  # if 50 or more enemy reinforcement needed
-				
+				(ge, ":free_enemy_slots", ":reinforce_percentage"),  # if X or more enemy reinforcement needed
+				(try_begin),
+            #Regulate overspawning
+              (gt, ":free_enemy_slots", "$g_enemy_allowed_alive_init_1"),
+               (assign, ":free_enemy_slots", "$g_enemy_allowed_alive_init_1"),
+            (try_end),
 				(call_script, "script_multiplayer_ccoop_spawn_wave", ":free_enemy_slots"),
 			(else_try),
-				#(lt, ":free_enemy_slots", 50),
+            (try_begin),
+            #regulate over
+				  (gt, ":free_enemy_slots", "$g_enemy_allowed_alive_init_1"),
+               (assign, ":free_enemy_slots", "$g_enemy_allowed_alive_init_1"),
+            (try_end),
+
 				(assign, ":num_troops_for_wave", 0),
 				(troop_get_slot, ":num_bot_types", "trp_multiplayer_data", multi_data_ccoop_wave_spawn_data_begin),
 				(try_for_range, ":cur_bot_type", 0, ":num_bot_types"),
@@ -44648,7 +44955,7 @@ scripts = [
 		(assign, reg0, ":number_of_players_will_be_moved"),
 	  ]
 	),
-	
+
  
   # script_multiplayer_server_play_sound_at_position
   # Input: arg1 = sound_id
@@ -45166,7 +45473,7 @@ scripts = [
 	  # if game type is captain
 	  (eq, "$g_multiplayer_is_game_type_captain", 1),
 	  
-	  #(display_debug_message, "@{!}multiplayer_reset_squad_on_team_change_for_captain_game_types"), #MCA
+	  #(display_message, "@{!}multiplayer_reset_squad_on_team_change_for_captain_game_types"), #MCA
 	  
 	  # clear squad info
 	  (store_script_param, ":player_no", 1),	  
@@ -45724,7 +46031,7 @@ scripts = [
 		(neq, ":do_sync", 0),
 		
 		#(assign, reg0, ":team_no"),
-		#(display_debug_message, "@{!}multiplayer_event_change_team_no is sent with team_no: {reg0}"),
+		#(display_message, "@{!}multiplayer_event_change_team_no is sent with team_no: {reg0}"),
 		
 	    (multiplayer_send_int_to_server, multiplayer_event_change_team_no, ":team_no"),
 	  (try_end),
@@ -45823,7 +46130,7 @@ scripts = [
 			#(assign, reg0, ":owner_player"),
 			#(assign, reg0, ":additional_gold"),
 			#(str_store_troop_name, s0, ":agent_troop_id"),
-			#(display_debug_message, "@{!}{reg0} gold is added to player no: {reg1} due to an alive {s0} bot. new item_earnings is {reg2}"),
+			#(display_message, "@{!}{reg0} gold is added to player no: {reg1} due to an alive {s0} bot. new item_earnings is {reg2}"),
 		(try_end),
 	]),
 	
@@ -45880,7 +46187,8 @@ scripts = [
 		(store_script_param, ":player_no", 1),
 				
 		(try_begin),
-			(neg|player_is_busy_with_menus, ":player_no"),
+			(this_or_next|neg|player_is_busy_with_menus, ":player_no"),
+         (le, "$g_multiplayer_ccoop_enemy_respawn_secs", 2),
 			(player_get_team_no, ":player_team", ":player_no"), #if player is currently spectator do not spawn his agent
 			(lt, ":player_team", multi_team_spectator),
 
@@ -45905,8 +46213,10 @@ scripts = [
 				(gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
 				
 				(assign, reg0, "$g_prison_cart_previous_point"),
-				(display_debug_message, "@{!}prison cart spawn at point {reg0}"),
-				
+            (try_begin),
+            (eq, "$g_daimyo_debug_mode", 1),
+				(display_message, "@{!}prison cart spawn at point {reg0}"),
+				(try_end),
 				(player_spawn_new_agent, ":player_no", "$g_prison_cart_previous_point"),
 				(call_script, "script_multiplayer_spawn_player_bot_squad_at_point", ":player_no", ":player_team", "$g_prison_cart_previous_point"), 
 			(else_try),
@@ -45988,15 +46298,27 @@ scripts = [
 	[
 		(try_begin),
 			(gt, "$g_multiplayer_ccoop_wave_no", 0),
-			(store_mul, ":bonus_gold", "$g_multiplayer_ccoop_wave_no", 100),
-			(val_add, ":bonus_gold", 400),
-		
+         (assign, ":bonus_gold", 0),
+         (try_begin),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 1, 11),
+            (assign, ":bonus_gold", "$g_gold_round_bonus"),
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
+            (store_mul, ":bonus_gold", "$g_gold_round_bonus", 2),
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 21, 31),
+            (store_mul, ":bonus_gold", "$g_gold_round_bonus", 3),
+         (try_end),
+		    
 			(get_max_players, ":num_players"),
-			(try_for_range, ":cur_player", 0, ":num_players"),
+			(try_for_range, ":cur_player", 1, ":num_players"),
 				(player_is_active, ":cur_player"),
 				(player_get_gold, ":player_gold", ":cur_player"),
 				(val_add, ":player_gold", ":bonus_gold"),
 				(player_set_gold, ":cur_player", ":player_gold", multi_max_gold_that_can_be_stored),
+            (assign, reg0, ":bonus_gold"),
+            (str_store_string, s10, "str_round_gold_bonus_received_reg0"),
+            (multiplayer_send_string_to_player, ":cur_player", multiplayer_event_show_server_message, s10),
 			(try_end),
 		(try_end),
 	]),
@@ -46027,9 +46349,10 @@ scripts = [
 				(prop_instance_set_position, ":prison_cart_door_left", pos1),						
 				(prop_instance_set_position, ":prison_cart_door_right", pos1),			
 			(try_end),
-			
-			(display_debug_message, "@{!}destroy prison cart"),
-			
+			(try_begin),
+         (eq, "$g_daimyo_debug_mode", 1),
+			(display_message, "@{!}destroy prison cart"),
+			(try_end),
 			# send destroy prison cart event to clients
 			(get_max_players, ":max_players"),
 			(try_for_range, ":cur_player", 0, ":max_players"),
@@ -46054,8 +46377,11 @@ scripts = [
 			
 			#
 			(assign, reg0, "$g_prison_cart_point"),
-			(display_debug_message, "@{!}spawning prison cart at point {reg0}"),
+         (try_begin),
+         (eq, "$g_daimyo_debug_mode", 1),
+			(display_message, "@{!}spawning prison cart at point {reg0}"),
 			#
+         (try_end),
 			
 			# set prison cart position
 			(set_fixed_point_multiplier, 100),
@@ -46064,7 +46390,6 @@ scripts = [
 			(position_move_y, pos1, -400), #4m back
 			(position_set_z_to_ground_level, pos1),
 			(prop_instance_set_position, ":prison_cart", pos1),
-		
 			# place left door
 			(scene_prop_get_instance, ":prison_cart_door_left", "spr_prison_cart_door_left", 0),
 			(init_position, pos2),		
@@ -46121,7 +46446,7 @@ scripts = [
 			
 			# reset first spawn slot
 			(get_max_players, ":max_players"),
-			(try_for_range, ":player_no", 0, ":max_players"),
+			(try_for_range, ":player_no", 1, ":max_players"),
 				(player_is_active, ":player_no"),
 				(try_begin),
 					(eq, "$g_multiplayer_ccoop_spawn_alive_player_squad_and_minus_one_first_spawn_slots_and_minus_one_first_spawn_slots", 1),
@@ -46146,8 +46471,10 @@ scripts = [
 		(store_script_param, ":player_no", 1),
 		
 		(assign, reg0, ":player_no"),
-		(display_debug_message, "@{!}multiplayer_upgrade_player_equipment: {reg0}"),	
-		
+      (try_begin),
+      (eq, "$g_daimyo_debug_mode", 1),
+		#(display_message, "@{!}multiplayer_upgrade_player_equipment: {reg0}"),	
+		(try_end),
 		(player_get_troop_id, ":player_troop", ":player_no"),
 		(player_get_agent_id, ":player_agent", ":player_no"),
 		(player_get_gold, ":player_gold", ":player_no"),
@@ -46333,7 +46660,7 @@ scripts = [
 			(assign, ":cap_player_num", 0),
 			(assign, ":merc_player_num", 0),
 			(get_max_players, ":max_players"),
-			(try_for_range, ":player_no", 0, ":max_players"),
+			(try_for_range, ":player_no", 1, ":max_players"),
 				(player_is_active, ":player_no"),
 				(player_get_team_no, ":team_no", ":player_no"),
 				
@@ -46349,7 +46676,7 @@ scripts = [
 			#
 			#(assign, reg0,":cap_player_num"),
 			#(assign, reg1,":merc_player_num"),
-			#(display_debug_message, "@SARI CAP#{reg0}  MERC#{reg1}"),
+			#(display_message, "@SARI CAP#{reg0}  MERC#{reg1}"),
 			#
 			(try_begin),
 				(gt, ":cap_player_num", 0),
@@ -46362,11 +46689,11 @@ scripts = [
 				(val_div, "$g_multiplayer_squad_size_calc", 100),
 				
 				#(assign, reg0, "$g_multiplayer_squad_size_calc"),
-				#(display_debug_message, "@SARI $g_multiplayer_squad_size_calc:{reg0}"),
+				#(display_message, "@SARI $g_multiplayer_squad_size_calc:{reg0}"),
 			(else_try),
 				(assign, "$g_multiplayer_squad_size_calc", "$g_multiplayer_squad_size"),
 				#(assign, reg0, "$g_multiplayer_squad_size_calc"),
-				#(display_debug_message, "@SARI $g_multiplayer_squad_size_calc2:{reg0}"),
+				#(display_message, "@SARI $g_multiplayer_squad_size_calc2:{reg0}"),
 			(try_end),
 			
 			# send g_multiplayer_squad_size_calc to clients
@@ -46389,6 +46716,3415 @@ scripts = [
 			(try_end),
 		(try_end), 
 	]),
+
+   #Daimyo Function
+  # script_get_random_weapon_for_agent
+  # Choose random weapon
+  # Input: none
+  # Output: none
+  ("get_random_weapon_for_agent",
+   [
+     #(store_script_param, ":cur_agent", 1),
+     
+     (try_begin),
+       (multiplayer_is_server),
+              (store_random_in_range, ":rand_wep", 0, 101),
+              #Ok if so lets set both weapon ammo to 0
+              (try_begin),#tier 1
+                (le, "$g_multiplayer_ccoop_wave_no", 10),
+                 (try_begin),
+                   (lt, ":rand_wep", 5),
+                   (assign, ":weapon_id", itm_sword_medieval_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 5, 10),
+                   (assign, ":weapon_id", itm_sword_medieval_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 10, 15),
+                   (assign, ":weapon_id", itm_sword_medieval_c),
+                 (else_try),
+                   (is_between, ":rand_wep", 15, 20),
+                   (assign, ":weapon_id", itm_sablya_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 20, 25),
+                   (assign, ":weapon_id", itm_sablya_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 25, 30),
+                   (assign, ":weapon_id", itm_sablya_c),
+                 (else_try),
+                   (is_between, ":rand_wep", 30, 35),
+                   (assign, ":weapon_id", itm_sablya_pure_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 35, 40),
+                   (assign, ":weapon_id", itm_sablya_pure_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 40, 45),
+                   (assign, ":weapon_id", itm_mace_1),
+                 (else_try),
+                   (is_between, ":rand_wep", 45, 50),
+                   (assign, ":weapon_id", itm_mace_2),
+                 (else_try),
+                   (is_between, ":rand_wep", 50, 55),
+                   (assign, ":weapon_id", itm_dubinka),
+                 (else_try),
+                   (is_between, ":rand_wep", 55, 60),
+                   (assign, ":weapon_id", itm_plotnik_toporik),
+                 (else_try),
+                   (is_between, ":rand_wep", 60, 65),
+                   (assign, ":weapon_id", itm_plotnik_topor),
+                 (else_try),
+                   (is_between, ":rand_wep", 65, 70),
+                   (assign, ":weapon_id", itm_pernach),
+                 (else_try),
+                   (is_between, ":rand_wep", 70, 75),
+                   (assign, ":weapon_id", itm_palitza),
+                 (else_try),
+                   (is_between, ":rand_wep", 75, 80),
+                   (assign, ":weapon_id", itm_rusty_palash),
+                 (else_try),
+                   (is_between, ":rand_wep", 80, 85),
+                   (assign, ":weapon_id", itm_palash),
+                 (else_try),
+                   (is_between, ":rand_wep", 85, 90),
+                   (assign, ":weapon_id", itm_good_palash),
+                 (else_try),
+                   (is_between, ":rand_wep", 90, 95),
+                   (assign, ":weapon_id", itm_yatagan_a),
+                 (else_try),
+                   (assign, ":weapon_id", itm_yatagan_good),
+                 (try_end),
+               
+               (else_try), #tier 2
+                (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
+                 (try_begin),
+                   (lt, ":rand_wep", 5),
+                   (assign, ":weapon_id", itm_sword_khergit_1),
+                 (else_try),
+                   (is_between, ":rand_wep", 5, 10),
+                   (assign, ":weapon_id", itm_sword_khergit_2),
+                 (else_try),
+                   (is_between, ":rand_wep", 10, 15),
+                   (assign, ":weapon_id", itm_sablya_d),
+                 (else_try),
+                   (is_between, ":rand_wep", 15, 20),
+                   (assign, ":weapon_id", itm_sablya_turk_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 20, 25),
+                   (assign, ":weapon_id", itm_sablya_turk_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 25, 30),
+                   (assign, ":weapon_id", itm_sablya_pure_c),
+                 (else_try),
+                   (is_between, ":rand_wep", 30, 35),
+                   (assign, ":weapon_id", itm_sablya_pure_d),
+                 (else_try),
+                   (is_between, ":rand_wep", 35, 40),
+                   (assign, ":weapon_id", itm_sablya_turk_pure_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 40, 45),
+                   (assign, ":weapon_id", itm_mace_3),
+                 (else_try),
+                   (is_between, ":rand_wep", 45, 50),
+                   (assign, ":weapon_id", itm_mace_4),
+                 (else_try),
+                   (is_between, ":rand_wep", 50, 55),
+                   (assign, ":weapon_id", itm_klevetz),
+                 (else_try),
+                   (is_between, ":rand_wep", 55, 60),
+                   (assign, ":weapon_id", itm_klevetz_good),
+                 (else_try),
+                   (is_between, ":rand_wep", 60, 65),
+                   (assign, ":weapon_id", itm_chekan),
+                 (else_try),
+                   (is_between, ":rand_wep", 65, 70),
+                   (assign, ":weapon_id", itm_chekan_good),
+                 (else_try),
+                   (is_between, ":rand_wep", 70, 75),
+                   (assign, ":weapon_id", itm_rusty_toporik),
+                 (else_try),
+                   (is_between, ":rand_wep", 75, 80),
+                   (assign, ":weapon_id", itm_good_palash_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 80, 85),
+                   (assign, ":weapon_id", itm_pehot_palash_old),
+                 (else_try),
+                   (is_between, ":rand_wep", 85, 90),
+                   (assign, ":weapon_id", itm_pehot_palash),
+                 (else_try),
+                   (is_between, ":rand_wep", 90, 95),
+                   (assign, ":weapon_id", itm_yatagan_rich),
+                 (else_try),
+                   (assign, ":weapon_id", itm_kozak_shablya),
+                 (try_end),
+
+               (else_try), #Tier 3
+                (gt, "$g_multiplayer_ccoop_wave_no", 20),
+                 (try_begin),
+                   (lt, ":rand_wep", 5),
+                   (assign, ":weapon_id", itm_sword_khergit_3),
+                 (else_try),
+                   (is_between, ":rand_wep", 5, 10),
+                   (assign, ":weapon_id", itm_sword_khergit_4),
+                 (else_try),
+                   (is_between, ":rand_wep", 10, 15),
+                   (assign, ":weapon_id", itm_sablya_turk_c),
+                 (else_try),
+                   (is_between, ":rand_wep", 15, 20),
+                   (assign, ":weapon_id", itm_sablya_tatar_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 20, 25),
+                   (assign, ":weapon_id", itm_sablya_turk_pure_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 25, 30),
+                   (assign, ":weapon_id", itm_sablya_turk_pure_c),
+                 (else_try),
+                   (is_between, ":rand_wep", 30, 35),
+                   (assign, ":weapon_id", itm_sablya_tatar_pure_a),
+                 (else_try),
+                   (is_between, ":rand_wep", 35, 40),
+                   (assign, ":weapon_id", itm_club_with_spike_head),
+                 (else_try),
+                   (is_between, ":rand_wep", 40, 45),
+                   (assign, ":weapon_id", itm_prostoy_toporik),
+                 (else_try),
+                   (is_between, ":rand_wep", 45, 50),
+                   (assign, ":weapon_id", itm_toporik_good),
+                 (else_try),
+                   (is_between, ":rand_wep", 50, 55),
+                   (assign, ":weapon_id", itm_toporik_rich),
+                 (else_try),
+                   (is_between, ":rand_wep", 55, 60),
+                   (assign, ":weapon_id", itm_good_pehot_palash),
+                 (else_try),
+                   (is_between, ":rand_wep", 60, 65),
+                   (assign, ":weapon_id", itm_good_pehot_palash_b),
+                 (else_try),
+                   (is_between, ":rand_wep", 65, 70),
+                   (assign, ":weapon_id", itm_kozak_good_shablya),
+                 (else_try),
+                   (is_between, ":rand_wep", 70, 75),
+                   (assign, ":weapon_id", itm_sword_khergit_3),
+                 (else_try),
+                   (is_between, ":rand_wep", 75, 80),
+                   (assign, ":weapon_id", itm_sword_khergit_4),
+                 (else_try),
+                   (is_between, ":rand_wep", 80, 85),
+                   (assign, ":weapon_id", itm_toporik_good),
+                 (else_try),
+                   (is_between, ":rand_wep", 85, 90),
+                   (assign, ":weapon_id", itm_toporik_rich),
+                 (else_try),
+                   (is_between, ":rand_wep", 90, 95),
+                   (assign, ":weapon_id", itm_black_hetman),
+                 (else_try),
+                   (assign, ":weapon_id", itm_black_hetman),
+                 (try_end),
+     (try_end),
+     (assign, reg0, ":weapon_id"),
+    ]),
 	
+    #Daimyo Function
+  # script_get_scene_prop_instance
+  # Choose random weapon
+  # Input: none
+  # Output: none
+  ("get_scene_prop_instance",
+   [
+     (store_script_param, ":prop_instance", 1),
+     (store_script_param, ":prop_type", 2),
+     (store_script_param, ":prop_general", 3),
+     (try_begin),
+       (multiplayer_is_server),
+      #spr_oim_trench_box_set #ammo box
+      #spr_oim_trench_basket_c -> spr_oim_trench_box -> spr_oim_trench_box_b to #spr_oim_trench_sandbag
+      #ctf_flag_kingdom_5
+      #spr_bean -> spr_bed_a -> _f -> spr_belfry_a #beds
+      #spr_farm_house_c -> spr_feeding_trough_a -> spr_fire_big #trough
+      #spr_stone_step_c -> spr_straw_a -> spr_straw_b -> spr_straw_c -> spr_table_castle_a #straw
+        (assign, ":return_prop_id", -1),
+        (try_begin),
+          (eq, ":prop_type", 1),
+           (try_begin),
+             (eq,  ":prop_general", "spr_oim_trench_box_set"),
+             (assign, ":class_name", "spr_oim_trench_box_set"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (else_try),
+            (eq,  ":prop_general", "spr_oim_trench_box"),
+            (assign, ":class_name", "spr_oim_trench_box"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (try_end),
+         
+         (else_try),
+          (eq, ":prop_type", 2),
+           (try_begin),
+             (eq,  ":prop_general", "spr_bed_a"),
+             (assign, ":class_name", "spr_bed_a"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"),  
+           (else_try),
+             (eq,  ":prop_general", "spr_bed_b"),
+             (assign, ":class_name", "spr_bed_b"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (else_try),
+             (eq,  ":prop_general", "spr_bed_c"),
+             (assign, ":class_name", "spr_bed_c"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+            (else_try),  
+             (eq,  ":prop_general", "spr_bed_d"),
+             (assign, ":class_name", "spr_bed_d"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (else_try),
+             (eq,  ":prop_general", "spr_bed_e"),
+             (assign, ":class_name", "spr_bed_e"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (else_try),
+             (eq,  ":prop_general", "spr_bed_f"),
+             (assign, ":class_name", "spr_bed_f"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (try_end),
+
+         (else_try), 
+          (eq, ":prop_type", 3),
+           (try_begin),
+             (eq,  ":prop_general", "spr_feeding_trough_a"),
+             (assign, ":class_name", "spr_feeding_trough_a"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"),  
+           (else_try),
+             (eq,  ":prop_general", "spr_straw_a"),
+             (assign, ":class_name", "spr_straw_a"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (else_try),
+             (eq,  ":prop_general", "spr_straw_b"),
+             (assign, ":class_name", "spr_straw_b"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+            (else_try),  
+             (eq,  ":prop_general", "spr_straw_c"),
+             (assign, ":class_name", "spr_straw_c"),
+             (scene_prop_get_instance, ":return_prop_id", ":class_name", ":prop_instance"), 
+           (try_end),
+         (try_end),
+     (try_end),
+     (assign, reg0, ":return_prop_id"),
+    ]),
+
+     #Daimyo Function
+  # script_get_agent_ammo_type
+  # Verify if ammo type, verify grenades
+  # Input: none
+  # Output: none
+  ("get_agent_ammo_type",
+   [
+     (store_script_param, ":agent_slot_item", 1),
+
+     (try_begin),
+       (multiplayer_is_server),
+
+        (assign, ":quiver_type", -1),
+        (assign, ":bullet_type", -1),
+        (assign, ":arrow_type", -1),
+           (try_begin),
+             (eq,  ":agent_slot_item", "itm_bad_bullets"),
+            # (assign, ":return_ammo_id", "itm_bad_bullets"),
+             (assign, ":quiver_type", 1),
+             (assign, ":bullet_type", 1),
+           (else_try),
+            (eq,  ":agent_slot_item", "itm_norm_bullets"),
+            #(assign, ":return_ammo_id", "itm_norm_bullets"),
+            (assign, ":quiver_type", 1),
+            (assign, ":bullet_type", 2),
+           (else_try),
+            (eq,  ":agent_slot_item", "itm_good_bullets"),
+            #(assign, ":return_ammo_id", "itm_good_bullets"),
+            (assign, ":quiver_type", 1),
+            (assign, ":bullet_type", 3),
+           (else_try),
+            (eq,  ":agent_slot_item", "itm_bad_arrows"),
+           # (assign, ":return_ammo_id", "itm_bad_arrows"),
+            (assign, ":quiver_type", 2),
+            (assign, ":arrow_type", 1),
+           (else_try),
+            (eq,  ":agent_slot_item", "itm_norm_arrows"),
+           # (assign, ":return_ammo_id", "itm_norm_arrows"),
+            (assign, ":quiver_type", 2),
+            (assign, ":arrow_type", 2),
+           (else_try),
+            (eq,  ":agent_slot_item", "itm_good_arrows"),
+            #(assign, ":return_ammo_id", "itm_good_arrows"),
+            (assign, ":quiver_type", 2),
+            (assign, ":arrow_type", 3),
+           (else_try),
+            (eq,  ":agent_slot_item", "itm_m_granata_small"),
+           # (assign, ":return_ammo_id", "itm_m_granata_small"),
+            (assign, ":quiver_type", 3),
+           (try_end),
+         
+     (try_end),
+     (assign, reg0, ":quiver_type"),
+     (assign, reg1, ":bullet_type"),
+     (assign, reg2, ":arrow_type"),
+    ]),
+   
+   #daimyo script_get_any_enemy_alive
+   #reiterate previous function
+   ("get_any_enemy_alive",
+   [
+      (try_begin),
+       (multiplayer_is_server),
+      (store_script_param, ":team_no", 1),
+      (assign, ":count", 0), 
+      (try_for_agents,":cur_agent"),
+         (try_begin),
+            #(neg|agent_slot_eq, ":cur_agent", slot_agent_is_hero_guard, 1),
+            (le, ":count", 6),  #BREAK
+            (agent_is_active, ":cur_agent"),
+            (agent_is_non_player, ":cur_agent"),
+            (agent_is_alive, ":cur_agent"),
+            (agent_is_human, ":cur_agent"),
+            (agent_get_team, ":agent_team", ":cur_agent"),
+            (eq, ":agent_team", ":team_no"),
+            (val_add, ":count", 1), 
+         (try_end),
+         (le, ":count", 6),  #BREAK
+      (try_end), 
+
+      (try_end),
+      (assign, reg0, ":count"), 
+   ]), 
+
+   #daimyo script_select_random_quest_and_setup
+   # Selects a random quest type and waits until certain conditions are met before it executes
+   ("select_random_quest_and_setup",
+   [
+      #Declarations
+      (assign, ":max_quest_types", 4),
+      (try_begin),
+         (this_or_next|eq, "$g_dy_quest_escort_vip_enabled", 1), #These will change based on compatibility of map
+         (eq, "$g_dy_quest_assassinate_escort_vip_enabled", 1), #These will change based on compatibility of map
+         (assign, ":min_quest_types", 0),
+      (try_end),
+
+      (try_begin),
+         (this_or_next|eq, "$g_dy_quest_assassinate_vip_enabeld", 1), #ALL MAPS WORK
+         (eq, "$g_dy_quest_defend_vip_enabeld", 1), #ALL MAPS WORK
+         (try_begin),
+            (this_or_next|eq, "$g_dy_quest_escort_vip_enabled", 0), #These will change based on compatibility of map
+            (eq, "$g_dy_quest_assassinate_escort_vip_enabled", 0), #These will change based on compatibility of map
+            (assign, ":min_quest_types", 2),
+         (try_end),
+      (try_end),
+      
+      
+      (store_random_in_range, "$g_chosen_quest_type", ":min_quest_types", ":max_quest_types"), #add more through here
+      
+      (try_begin), #Balance Friendly/enemy quests
+         (eq, "$g_dy_last_quest_type", 0), #Last was friendly then make enemy
+         (try_begin),
+            (eq, "$g_dy_quest_escort_vip_enabled", 1), #Compatible Map?
+            (this_or_next|eq, "$g_chosen_quest_type", 0), #Friendly Escort
+            (eq, "$g_chosen_quest_type", 3),
+            (store_random_in_range, ":get_random_enemy", 0, 2),
+            (try_begin),
+               (eq, ":get_random_enemy", 0),
+               (assign, "$g_chosen_quest_type", 1),
+            (else_try),
+               (eq, ":get_random_enemy", 1),
+               (assign, "$g_chosen_quest_type", 2),
+            (try_end),
+         (else_try),
+            (assign, "$g_chosen_quest_type", 2),
+         (try_end),
+      (else_try),
+         (eq, "$g_dy_last_quest_type", 1), #Last was Enemy then make Friendly
+         (this_or_next|eq, "$g_chosen_quest_type", 1), #Friendly Escort
+         (eq, "$g_chosen_quest_type", 2),
+         (store_random_in_range, ":get_random_friendly", 0, 2),
+         (try_begin),
+            (eq, "$g_dy_quest_assassinate_escort_vip_enabled", 1),#Compatible Map?
+            (try_begin),
+               (eq, ":get_random_friendly", 0),
+               (assign, "$g_chosen_quest_type", 0),
+            (else_try),
+               (eq, ":get_random_friendly", 1),
+               (assign, "$g_chosen_quest_type", 3),
+            (try_end),
+         (else_try),
+            (assign, "$g_chosen_quest_type", 3),
+         (try_end),
+      (try_end),
+
+      (try_begin),  #Track last quest type (friendly or enemy)
+         (this_or_next|eq, "$g_chosen_quest_type", 0),
+         (eq, "$g_chosen_quest_type", 3),
+         (assign, "$g_dy_last_quest_type", 0), #0 = Friendly, 1 = Enemy Quest
+      (else_try),
+         (this_or_next|eq, "$g_chosen_quest_type", 1),
+         (eq, "$g_chosen_quest_type", 2),
+         (assign, "$g_dy_last_quest_type", 1), #0 = Friendly, 1 = Enemy Quest
+      (try_end),
+      
+      (try_begin), #Lets get quest
+                  #####VIP ESCORT A TO B QUEST Enemy or Friendly#####
+         #(assign, "$g_chosen_quest_type", 2), #DEBUG QUESTS
+         (this_or_next|eq, "$g_chosen_quest_type", 0), #Friendly Escort
+         (eq, "$g_chosen_quest_type", 1), #or Enemy Escort
+         #Determine waypoints and set time based on them
+         (store_random_in_range, "$g_dy_vip_points_left", 3, "$g_dy_max_vip_points"),
+         (try_begin),
+            (eq, "$g_dy_vip_points_left", 2),
+            (assign, "$g_quest_expire_countdown", 360), #7 Minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (eq, "$g_dy_vip_points_left", 3),
+            (assign, "$g_quest_expire_countdown", 480), #9 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (eq, "$g_dy_vip_points_left", 4),
+            (assign, "$g_quest_expire_countdown", 540), #11 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (eq, "$g_dy_vip_points_left", 5),
+            (assign, "$g_quest_expire_countdown", 540), #13 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (ge, "$g_dy_vip_points_left", 6),
+            (assign, "$g_quest_expire_countdown", 660), #15 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (try_end),
+      (else_try),
+         (this_or_next|eq, "$g_chosen_quest_type", 2), #Assassin Quest
+         (eq, "$g_chosen_quest_type", 3), #Defend Quest
+         (try_begin),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 1, 6), #1 to 5
+            (assign, "$g_quest_expire_countdown", 240), #6 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 6, 11),  #6 to 10
+            (assign, "$g_quest_expire_countdown", 300), #8 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 11, 16), #11 to 15
+            (assign, "$g_quest_expire_countdown", 360), #8 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 16, 21), #16 to 20
+            (assign, "$g_quest_expire_countdown", 480), #10 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 21, 26), #21 to 25
+            (assign, "$g_quest_expire_countdown", 480), #12 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 26, 31), #26 to 30
+            (assign, "$g_quest_expire_countdown", 540), #14 minutes #dy this determines when quest expires (AI gets stuck etc.)
+         (try_end),      #(else_try), #New Quests...
+      (try_end),
+   ]),
+
+   
+   #daimyo script_dy_quest_spawn_agents
+   # Selects a random quest type and waits until certain conditions are met before it executes
+   ("dy_quest_spawn_agents",
+   [
+      (reset_visitors),
+      (store_script_param, ":agent_team", 1),
+      (store_current_scene, ":cur_scene"), #So we can use (add_visitors_to_current_scene, <entry_no>, <troop_id>, <number_of_troops>, <team_no>, <group_no>),
+      (modify_visitors_at_site, ":cur_scene"),
+      
+      #Get player count
+      (get_max_players, ":max_players"),
+      (assign, ":player_count", 0),            
+      (try_for_range, ":cur_player", 1, ":max_players"),                
+         (player_is_active, ":cur_player"),
+         (player_get_team_no, ":player_team", ":cur_player"),
+         (eq, ":player_team", 0),
+         (val_add, ":player_count", 1),
+      (try_end),
+      #Determine amount of Guards
+      (try_begin),
+        (is_between, "$g_multiplayer_ccoop_wave_no", 0, 11),
+        (store_random_in_range, "$g_hero_guard_total", 3, 11),
+        (try_begin),
+            (gt, ":player_count", 5),
+            (store_random_in_range, "$g_hero_guard_total", 4, 11),
+            (gt, ":player_count", 10),
+            (store_random_in_range, "$g_hero_guard_total", 5, 11),
+            (gt, ":player_count", 15),
+            (store_random_in_range, "$g_hero_guard_total", 6, 11),
+            (gt, ":player_count", 20),
+            (store_random_in_range, "$g_hero_guard_total", 7, 11),
+        (try_end),
+      (else_try),
+        (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
+        (store_random_in_range, "$g_hero_guard_total", 6, 11),
+        (try_begin),
+            (gt, ":player_count", 5),
+            (store_random_in_range, "$g_hero_guard_total", 7, 11),
+            (gt, ":player_count", 10),
+            (store_random_in_range, "$g_hero_guard_total", 8, 11),
+            (gt, ":player_count", 15),
+            (store_random_in_range, "$g_hero_guard_total", 9, 11),
+            (gt, ":player_count", 20),
+            (store_random_in_range, "$g_hero_guard_total", 10, 11),
+        (try_end),
+      (else_try),
+        (is_between, "$g_multiplayer_ccoop_wave_no", 21, 31),
+        (store_random_in_range, "$g_hero_guard_total", 8, 11),
+        (try_begin),
+            (gt, ":player_count", 15),
+            (store_random_in_range, "$g_hero_guard_total", 9, 11),
+            (gt, ":player_count", 20),
+            (store_random_in_range, "$g_hero_guard_total", 10, 11),
+        (try_end),
+      (try_end),
+
+      #Global get troop type and id
+      (call_script, "script_dy_get_hero_and_guard_type"),
+      (assign, ":hero_troop_type", reg30),
+      (assign, ":guard_troop_type", reg31),
+
+      #(assign, ":hero_troop_type", 3), #DEBUG
+      #(assign, ":guard_troop_type", 1), #DEBUG
+      (call_script, "script_dy_get_hero_agent", ":hero_troop_type"),
+      (assign, ":hero_troop_id", reg25),
+      (call_script, "script_dy_get_guard_agents", ":guard_troop_type"),
+      (assign, ":guard_troop_id", reg26),
+
+      (try_begin), ############Friendly/Enemy Escort VIP
+         (this_or_next|eq, "$g_chosen_quest_type", 0),
+         (eq, "$g_chosen_quest_type", 1),
+         #QUEST Entry Points:
+         #Assassinate 80-87
+         #Defend      88-107
+         #Escort/Assassin 108-117 Entry, 118-127 Destination points (Not on Final Point)
+         (store_random_in_range, "$g_vip_agent_hero_spawn_point", 108, 118),
+
+         #Hero
+         (assign, ":start_point", "$g_vip_agent_hero_spawn_point"),
+         (call_script, "script_dy_quest_get_destination_point", ":start_point", -1, 1),
+         (assign, "$g_vip_hero_destination_point", reg10),
+
+
+         (add_visitors_to_current_scene, "$g_vip_agent_hero_spawn_point", ":hero_troop_id", 1, ":agent_team", -1),
+         (entry_point_get_position, pos23, "$g_vip_hero_destination_point"),
+         (prop_instance_set_position, "$g_dest_flag", pos23),
+
+         
+         #(assign, ":max_guards", 10),
+         #(assign, "$g_hero_guards_quest", ":max_guards,"),
+         (try_begin),
+            #(eq, ":agent_team", 1),
+            (add_visitors_to_current_scene, "$g_vip_agent_hero_spawn_point", ":guard_troop_id", "$g_hero_guard_total", ":agent_team", -1),
+         (try_end),
+      (else_try),###################Assassinate VIP
+         (eq, "$g_chosen_quest_type", 2),
+         #(call_script, "script_get_alive_enemies_count", 1), #1 = team param
+         #(assign, ":agent_count", reg0),
+         (store_random_in_range, "$g_vip_agent_hero_spawn_point", 80, 88),
+         
+         #(le, "$g_multiplayer_ccoop_enemy_respawn_secs", 120), 
+         #(le, ":agent_count", 30), and le, 30 team, > percent chance
+         #(assign, ":guard_mod", 80),
+         (store_random_in_range, ":guards_chance", 1, 101),
+         # (try_begin),
+         #    (le, "$g_multiplayer_ccoop_enemy_respawn_secs", 120), 
+         #    #(val_add, ":guard_mod", 10),
+         # (try_end),
+         # (try_begin),
+         #    (le, "$g_global_enemy_count", 30),
+         #    #(val_add, ":guard_mod", 20),
+         # (try_end),
+         (store_random_in_range, "$g_hero_guard_total", 6, 8),
+         (try_begin),
+            (gt, "$g_total_team_1_players", 5),
+            (store_random_in_range, "$g_hero_guard_total", 6, 8),
+            (gt, "$g_total_team_1_players", 10),
+            (store_random_in_range, "$g_hero_guard_total", 8, 12),
+            (gt, "$g_total_team_1_players", 15),
+            (store_random_in_range, "$g_hero_guard_total", 12, 16),
+            (gt, "$g_total_team_1_players", 20),
+            (store_random_in_range, "$g_hero_guard_total", 16, 20),
+        (try_end),
+
+         (add_visitors_to_current_scene, "$g_vip_agent_hero_spawn_point", ":hero_troop_id", 1, ":agent_team", -1),
+ 
+         #(assign, ":max_guards", 10),
+         #(assign, "$g_hero_guards_quest", ":max_guards,"),
+         (try_begin),
+            #(lt, ":guards_chance", ":guard_mod"), #If TRUE, SPAWN GUARDS
+            (add_visitors_to_current_scene, "$g_vip_agent_hero_spawn_point", ":guard_troop_id", "$g_hero_guard_total", ":agent_team", -1),
+         (try_end),
+      (else_try),#####################Defend VIP
+         (eq, "$g_chosen_quest_type", 3),
+         (store_random_in_range, "$g_vip_agent_hero_spawn_point", 88, 108),
+         (assign, ":hero_troop_type", 1),#Only non-cav Hero for defend quest
+         (call_script, "script_dy_get_hero_agent", ":hero_troop_type"),
+         (assign, ":hero_troop_id", reg25),
+         (add_visitors_to_current_scene, "$g_vip_agent_hero_spawn_point", ":hero_troop_id", 1, ":agent_team", -1),
+         
+         (assign, ":guard_mod", 60),
+         (store_random_in_range, ":guards_chance", 1, 101),
+         (try_begin),
+            (le, "$g_multiplayer_ccoop_enemy_respawn_secs", 120), 
+            (val_add, ":guard_mod", 10),
+         (try_end),
+         (try_begin),
+            (le, "$g_global_friendly_count", 30),
+            (val_add, ":guard_mod", 40),
+         (try_end),
+         
+         #(assign, ":max_guards", 10),
+         #(assign, "$g_hero_guards_quest", ":max_guards,"),
+         (try_begin),
+            (lt, ":guards_chance", ":guard_mod"), #If TRUE, SPAWN GUARDS
+            (assign, ":guard_troop_type", 1), #Only non-cav guards
+            (call_script, "script_dy_get_guard_agents", ":guard_troop_type"),
+            (assign, ":guard_troop_id", reg26),
+            (add_visitors_to_current_scene, "$g_vip_agent_hero_spawn_point", ":guard_troop_id", "$g_hero_guard_total", ":agent_team", -1),
+         (try_end),
+      (try_end),
+   ]),
+   
+   #daimyo script_dy_test_agents #DEBUG AGENTS
+   # Test for testing agents
+   ("dy_test_agents",
+   [
+      (reset_visitors),
+      (store_current_scene, ":cur_scene"), #So we can use (add_visitors_to_current_scene, <entry_no>, <troop_id>, <number_of_troops>, <team_no>, <group_no>),
+      (modify_visitors_at_site, ":cur_scene"),
+      (store_random_in_range, ":start_point", 0, 70),
+      #(add_visitors_to_current_scene, ":start_point", "trp_mercenary_crossbowman", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_hired_blade", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_mercenary_swordsman", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_caravan_guard", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_watchman", 5, 0, -1),
+      (add_visitors_to_current_scene, ":start_point", "trp_quick_battle_troop_9", 10, 0, -1),
+      (add_visitors_to_current_scene, ":start_point", "trp_quick_battle_troop_10", 10, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_manhunter", 10, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_black_khergit_horseman", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_steppe_bandit", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_sea_raider", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_forest_bandit", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_mountain_bandit", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_brigand", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_bandit", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_looter", 5, 0, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_undead_horseman", 10, 1, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_undead_nomad", 10, 1, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_undead", 10, 1, -1),
+      #(add_visitors_to_current_scene, ":start_point", "trp_hell_knight", 10, 1, -1),
+      #(entry_point_get_position, pos20, ":start_point"),
+      #(set_spawn_position, pos20),
+      #(assign, ":troop_type_id", "trp_undead_walker"),
+      #(spawn_agent, ":troop_type_id"),
+      #(agent_set_team, reg0, 1),
+      #(assign, ":troop_type_id", "trp_undead_horseman"),
+      #(spawn_agent, ":troop_type_id"),
+      #(agent_set_team, reg0, 1),
+      #(assign, ":troop_type_id", "trp_undead_nomad"),
+      #(spawn_agent, ":troop_type_id"),
+      #(agent_set_team, reg0, 1),
+      #(assign, ":troop_type_id", "trp_undead"),
+      #(spawn_agent, ":troop_type_id"),
+      #(agent_set_team, reg0, 1),
+      #(assign, ":troop_type_id", "trp_hell_knight"),
+      #(spawn_agent, ":troop_type_id"),
+      #(agent_set_team, reg0, 1),
+      #(prop_instance_set_position, "$g_heros_flag", pos20),   
+   ]),
+   
+   #daimyo script_dy_get_vip_guardpos
+   # Get single guard pos
+   ("dy_get_vip_guardpos",
+   [
+      (store_script_param, ":hero_guard", 1),
+      (agent_get_position, pos9, "$g_agent_hero_global_id_1"),
+      (store_random_in_range, ":priority_guard_pos", 0, 100),
+      (set_fixed_point_multiplier, 100),
+      (try_begin), 
+         (is_between, ":priority_guard_pos", 0, 25), #35% Forward Guard Position +20 meters
+         (agent_set_slot, ":hero_guard", slot_agent_hero_guard_guardpos, 1),
+      (else_try),
+         (is_between, ":priority_guard_pos", 25, 50), #20% Left Side Guard Position +10 left, +5 forward
+         (agent_set_slot, ":hero_guard", slot_agent_hero_guard_guardpos, 2),
+      (else_try),
+         (is_between, ":priority_guard_pos", 50, 75), #20% Right Side Guard Position +10 right, +5 forward
+         (agent_set_slot, ":hero_guard", slot_agent_hero_guard_guardpos, 3),
+      (else_try),
+         (is_between, ":priority_guard_pos", 75, 100), #20% Rear Guard Position -5 behind
+         (agent_set_slot, ":hero_guard", slot_agent_hero_guard_guardpos, 4),
+      (try_end),
+      
+   ]),
+
+   #daimyo script_dy_set_vip_guardpos
+   # Set single guard pos
+   ("dy_set_vip_guardpos",
+   [
+      (store_script_param, ":hero_guard", 1),
+      (agent_get_position, pos9, "$g_agent_hero_global_id_1"),
+      (set_fixed_point_multiplier, 100),
+      (try_begin),
+         (eq, "$g_chosen_quest_type", 3),
+         (try_begin), 
+            (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 1),
+            (position_set_x, pos10, 0),
+            (position_set_y, pos10, 200), 
+            (position_set_z, pos10, 0), 
+            (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+         (else_try),
+            (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 2),
+            (position_set_x, pos10, -150),
+            (position_set_y, pos10, 0), 
+            (position_set_z, pos10, 0), 
+            (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+         (else_try),
+            (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 3),
+            (position_set_x, pos10, 150),
+            (position_set_y, pos10, 0), 
+            (position_set_z, pos10, 0), 
+            (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+         (else_try),
+            (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 4),
+            (position_set_x, pos10, 0),
+            (position_set_y, pos10, -200), 
+            (position_set_z, pos10, 0), 
+            (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+         (try_end),
+      (else_try),
+         (try_begin), 
+               (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 1),
+               (position_set_x, pos10, 0),
+               (position_set_y, pos10, 150), 
+               (position_set_z, pos10, 0), 
+               (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+            (else_try),
+               (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 2),
+               (position_set_x, pos10, -500),
+               (position_set_y, pos10, 150), 
+               (position_set_z, pos10, 0), 
+               (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+            (else_try),
+               (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 3),
+               (position_set_x, pos10, 500),
+               (position_set_y, pos10, 150), 
+               (position_set_z, pos10, 0), 
+               (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+            (else_try),
+               (agent_slot_eq, ":hero_guard", slot_agent_hero_guard_guardpos, 4),
+               (position_set_x, pos10, 0),
+               (position_set_y, pos10, -250), 
+               (position_set_z, pos10, 0), 
+               (position_transform_position_to_parent, pos8, pos9, pos10), #pos8 = dest|pos9 = anchor|pos10 = relative to anchor 
+            (try_end),
+      (try_end), 
+   ]),
+   
+   #daimyo script_dy_get_hero_and_guard_type
+   # Selects a random troop type
+   ("dy_get_hero_and_guard_type", #This will return the guard agent_id
+   [
+      (try_begin),
+         (assign, ":hero_troop_type", -1), #1 = infantry, 3 = cav
+         (assign, ":guard_troop_type", -1), #1 = infantry, 3 = cav
+         (try_begin), #Determine Troop Type
+            (store_random_in_range, ":cav_chance", 0, 10),
+            (this_or_next|ge, "$g_dy_vip_points_left", 4),
+            (this_or_next|eq, "$g_chosen_quest_type", 2),
+            (eq, "$g_chosen_quest_type", 3),
+            (lt, ":cav_chance", 5),
+            (assign, ":hero_troop_type", 3),
+         (else_try),
+            (store_random_in_range, ":cav_chance", 0, 10),
+            (this_or_next|is_between, "$g_dy_vip_points_left", 0, 5),
+            (this_or_next|eq, "$g_chosen_quest_type", 2),
+            (eq, "$g_chosen_quest_type", 3),
+            (lt, ":cav_chance", 5),
+            (assign, ":hero_troop_type", 1),
+         (else_try),
+            (store_random_in_range, ":random_troop", 0, 10),
+            (try_begin),
+               (lt, ":random_troop", 5),
+               (assign, ":hero_troop_type", 1),
+            (else_try),
+               (assign, ":hero_troop_type", 3),
+            (try_end),
+         (try_end),
+         (try_begin), #Determine Guard Type
+            (eq, ":hero_troop_type", 3),
+            (assign, ":guard_troop_type", 3),
+         (else_try),
+            (eq, ":hero_troop_type", 1),
+            (store_random_in_range, ":random_troop", 0, 10),
+            (try_begin),
+               (lt, ":random_troop", 5),
+               (assign, ":guard_troop_type", 1),
+            (else_try),
+               (assign, ":guard_troop_type", 3),
+            (try_end),
+         (try_end),
+         (assign, reg30, ":hero_troop_type"),
+         (assign, reg31, ":guard_troop_type"),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_is_agent_reinforcement
+   # Selects verifies agent is reinforcement
+   #Input: agent troop ID 
+   #Output: Bool verification
+   ("dy_is_agent_reinforcement", #This will verify if passed agent is hero
+   [
+      (store_script_param, ":troop_id", 1), #1 = Troops ID passed
+      (assign, ":is_reinforcement_agent", 0),
+      (try_begin),
+         (this_or_next|eq, ":troop_id", "trp_looter"),
+         (this_or_next|eq, ":troop_id", "trp_bandit"),
+         (this_or_next|eq, ":troop_id", "trp_brigand"),
+         (this_or_next|eq, ":troop_id", "trp_mountain_bandit"),
+         (this_or_next|eq, ":troop_id", "trp_farmer"),
+         (this_or_next|eq, ":troop_id", "trp_townsman"),
+         (this_or_next|eq, ":troop_id", "trp_watchman"),
+         (this_or_next|eq, ":troop_id", "trp_caravan_guard"),
+         (this_or_next|eq, ":troop_id", "trp_manhunter"),
+         (this_or_next|eq, ":troop_id", "trp_slave_driver"),
+         (this_or_next|eq, ":troop_id", "trp_slave_hunter"),
+         (this_or_next|eq, ":troop_id", "trp_slave_crusher"),
+         (this_or_next|eq, ":troop_id", "trp_slaver_chief"),
+         (this_or_next|eq, ":troop_id", "trp_forest_bandit"),
+         (this_or_next|eq, ":troop_id", "trp_sea_raider"),
+         (this_or_next|eq, ":troop_id", "trp_steppe_bandit"),
+         (this_or_next|eq, ":troop_id", "trp_black_khergit_horseman"),
+         (this_or_next|eq, ":troop_id", "trp_mercenary_swordsman"),
+         (this_or_next|eq, ":troop_id", "trp_hired_blade"),
+         (this_or_next|eq, ":troop_id", "trp_mercenary_crossbowman"),
+         (this_or_next|eq, ":troop_id", "trp_mercenary_horseman"),
+         (this_or_next|eq, ":troop_id", "trp_merc_reytar_levelup"),
+         (this_or_next|eq, ":troop_id", "trp_merc_reytar"),
+         (this_or_next|eq, ":troop_id", "trp_rundashir_levelup"),
+         (eq, ":troop_id", "trp_quick_battle_troop_10"),
+         (assign, ":is_reinforcement_agent", 1),
+      (try_end),
+      (assign, reg14, ":is_reinforcement_agent"),
+   ]),
+
+   #daimyo script_dy_is_agent_a_hero
+   # Selects verifies agent is hero
+   #Input: agent troop ID 
+   #Output: Bool verification
+   ("dy_is_agent_a_hero", #This will verify if passed agent is hero
+   [
+      (store_script_param, ":troop_id", 1), #1 = Troops ID passed
+      (assign, ":is_hero_agent", 0),
+      (try_begin),
+         (this_or_next|eq, ":troop_id", "trp_kingdom_1_lord"),
+         (this_or_next|eq, ":troop_id", "trp_kingdom_2_lord"),
+         (this_or_next|eq, ":troop_id", "trp_kingdom_3_lord"),
+         (this_or_next|eq, ":troop_id", "trp_kingdom_4_lord"),
+         (this_or_next|eq, ":troop_id", "trp_kingdom_5_lord"),
+         (this_or_next|eq, ":troop_id", "trp_knight_1_2"),
+         (this_or_next|eq, ":troop_id", "trp_knight_2_15"),
+         (this_or_next|eq, ":troop_id", "trp_knight_3_10"),
+         (this_or_next|eq, ":troop_id", "trp_knight_4_2"),
+         (eq, ":troop_id", "trp_knight_5_5"),
+         (assign, ":is_hero_agent", 1),
+         (display_message, "@Verified hero troop_id"),
+      (try_end),
+      (assign, reg14, ":is_hero_agent"),
+   ]),
+
+   #daimyo script_dy_get_hero_agent
+   # Selects a random Hero
+   ("dy_get_hero_agent", #This will return the guard agent_id
+   [
+      (store_script_param, ":troop_type", 1), #1 = infantry, 2 = ranged, 3 = Cav
+      (try_begin),
+         (assign, ":troop_id_selected", -1),
+         (try_begin),
+            (eq, ":troop_type", 1), #Inf
+            (store_random_in_range, ":select_troop", 1, 6),
+            (try_begin),
+               (eq, ":select_troop", 1),
+               (assign, ":troop_id_selected", "trp_kingdom_1_lord"),
+            (else_try),
+               (eq, ":select_troop", 2),
+               (assign, ":troop_id_selected", "trp_kingdom_2_lord"),
+            (else_try),
+               (eq, ":select_troop", 3),
+               (assign, ":troop_id_selected", "trp_kingdom_3_lord"),
+            (else_try),
+               (eq, ":select_troop", 4),
+               (assign, ":troop_id_selected", "trp_kingdom_4_lord"),
+            (else_try),
+               (eq, ":select_troop", 5),
+               (assign, ":troop_id_selected", "trp_kingdom_5_lord"),
+            (try_end),
+         (else_try),
+            (eq, ":troop_type", 2), #Range
+         (else_try),
+            (store_random_in_range, ":select_troop", 1, 6),
+            (eq, ":troop_type", 3), #Cav
+            (try_begin),
+               (eq, ":select_troop", 1),
+               (assign, ":troop_id_selected", "trp_knight_1_2"),
+            (else_try),
+               (eq, ":select_troop", 2),
+               (assign, ":troop_id_selected", "trp_knight_2_15"),
+            (else_try),
+               (eq, ":select_troop", 3),
+               (assign, ":troop_id_selected", "trp_knight_3_10"),
+            (else_try),
+               (eq, ":select_troop", 4),
+               (assign, ":troop_id_selected", "trp_knight_4_2"),
+            (else_try),
+               (eq, ":select_troop", 5),
+               (assign, ":troop_id_selected", "trp_knight_5_5"),
+            (try_end),
+         (try_end), 
+         (assign, reg25, ":troop_id_selected"),
+      (try_end),
+   ]),
+   
+   #daimyo script_dy_is_agent_hero_guard
+   # Selects a random Hero
+   #Input: agent troop ID 
+   #Output: Bool verification
+   ("dy_is_agent_hero_guard", #This will verify if passed agent is hero guard
+   [
+      (store_script_param, ":troop_id", 1), #1 = Troops ID passed from call
+      (try_begin),
+         (assign, ":is_hero_guard_agent", 0),
+         (try_begin),
+            (this_or_next|eq, ":troop_id", "trp_moskov_straj"),
+            (this_or_next|eq, ":troop_id", "trp_khergit_castle_guard"),
+            (this_or_next|eq, ":troop_id", "trp_rhodok_castle_guard"),
+            (this_or_next|eq, ":troop_id", "trp_nord_castle_guard"),
+            (this_or_next|eq, ":troop_id", "trp_rinda"),
+            (this_or_next|eq, ":troop_id", "trp_vaegir_castle_guard"),
+            (this_or_next|eq, ":troop_id", "trp_swadian_castle_guard"),
+            (this_or_next|eq, ":troop_id", "trp_rhodok_veteran_crossbowman_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_vaegir_guard_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_ttr_cherkes_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_litva_lipki_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_mosk_kalmyk_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_sved_lancers_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_asak_bey_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_vaegir_knight_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_merc_reytar_levelup"),
+            (this_or_next|eq, ":troop_id", "trp_mercenary_horseman"),
+            (this_or_next|eq, ":troop_id", "trp_saymen_levelup"), #Ranged Test
+            (this_or_next|eq, ":troop_id", "trp_nord_veteran_archer_levelup"), #Ranged Test
+            (eq, ":troop_id", "trp_zyndjirli_levelup"),
+            (assign, ":is_hero_guard_agent", 1),
+            #(display_message, "@Verified hero GUARD troop_id"),
+         (try_end),
+         (assign, reg15, ":is_hero_guard_agent"),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_get_guard_agents
+   # Selects a random set of pre-defined guards
+   ("dy_get_guard_agents", #This will return the guard agent_id
+   [
+      (store_script_param, ":troop_type", 1), #1 = infantry, 2 = ranged, 3 = Cav
+      (try_begin),
+         (assign, ":troop_id_selected", -1),
+         (try_begin),
+            (eq, ":troop_type", 1), #Inf
+            (store_random_in_range, ":select_troop", 0, 9),
+            (try_begin),
+               (eq, ":select_troop", 0),
+               (assign, ":troop_id_selected", "trp_moskov_straj"),
+            (else_try),
+               (eq, ":select_troop", 1),
+               (assign, ":troop_id_selected", "trp_khergit_castle_guard"),
+            (else_try),
+               (eq, ":select_troop", 2),
+               (assign, ":troop_id_selected", "trp_rhodok_castle_guard"),
+            (else_try),
+               (eq, ":select_troop", 3),
+               (assign, ":troop_id_selected", "trp_nord_castle_guard"),
+            (else_try),
+               (eq, ":select_troop", 4),
+               (assign, ":troop_id_selected", "trp_rinda"),
+            (else_try),
+               (eq, ":select_troop", 5),
+               (assign, ":troop_id_selected", "trp_vaegir_castle_guard"),
+            (else_try),
+               (eq, ":select_troop", 6),
+               (assign, ":troop_id_selected", "trp_swadian_castle_guard"),
+            (else_try),
+               (eq, ":select_troop", 7),
+               (assign, ":troop_id_selected", "trp_nord_veteran_archer_levelup"),
+            (else_try),
+               (eq, ":select_troop", 8),
+               (assign, ":troop_id_selected", "trp_saymen_levelup"),
+            (try_end),
+         (else_try),
+            (eq, ":troop_type", 2), #Range
+         (else_try),
+            (store_random_in_range, ":select_troop", 0, 11),
+            (eq, ":troop_type", 3), #Cav
+            (try_begin),
+               (eq, ":select_troop", 0),
+               (assign, ":troop_id_selected", "trp_rhodok_veteran_crossbowman_levelup"),
+            (else_try),
+               (eq, ":select_troop", 1),
+               (assign, ":troop_id_selected", "trp_vaegir_guard_levelup"),
+            (else_try),
+               (eq, ":select_troop", 2),
+               (assign, ":troop_id_selected", "trp_ttr_cherkes_levelup"),
+            (else_try),
+               (eq, ":select_troop", 3),
+               (assign, ":troop_id_selected", "trp_litva_lipki_levelup"),
+            (else_try),
+               (eq, ":select_troop", 4),
+               (assign, ":troop_id_selected", "trp_mosk_kalmyk_levelup"),
+            (else_try),
+               (eq, ":select_troop", 5),
+               (assign, ":troop_id_selected", "trp_sved_lancers_levelup"),
+            (else_try),
+               (eq, ":select_troop", 6),
+               (assign, ":troop_id_selected", "trp_asak_bey_levelup"),
+            (else_try),
+               (eq, ":select_troop", 7),
+               (assign, ":troop_id_selected", "trp_vaegir_knight_levelup"),
+            (else_try),
+               (eq, ":select_troop", 8),
+               (assign, ":troop_id_selected", "trp_merc_reytar_levelup"),
+            (else_try),
+               (eq, ":select_troop", 9),
+               (assign, ":troop_id_selected", "trp_mercenary_horseman"),
+            (else_try),
+               (eq, ":select_troop", 10),
+               (assign, ":troop_id_selected", "trp_zyndjirli_levelup"),
+            (try_end),
+         (try_end), 
+         (assign, reg26, ":troop_id_selected"),
+      (try_end),
+   ]),
+   
+   #daimyo script_dy_clear_charge_hero_guards
+   # Clear guards of being labeled guard and tell them to charge
+   ("dy_clear_charge_hero_guards", #This will return the guard agent_id
+   [
+      (try_for_range, ":cur_hero", 0, "$g_hero_guard_total"), ### MOD GUARD NUM
+         (troop_get_slot, ":hero_guard_agent", "trp_array_agents", ":cur_hero"),
+         (troop_set_slot, "trp_array_agents", ":cur_hero", -1),
+         (agent_is_active, ":hero_guard_agent"),
+         (agent_is_alive, ":hero_guard_agent"),
+         (agent_is_human, ":hero_guard_agent"),
+         (agent_slot_eq, ":hero_guard_agent", slot_agent_is_hero_guard, 1),
+         (agent_set_slot, ":hero_guard_agent", slot_agent_is_hero_guard, 0),
+         (agent_clear_scripted_mode, ":hero_guard_agent"),
+         (agent_force_rethink, ":hero_guard_agent"),
+         (val_sub, "$g_hero_guards_quest", 1), 
+      (try_end),
+   ]),
+
+   #daimyo script_dy_kill_hero_guards
+   # Kills guard units when Mission complete or failed
+   ("dy_kill_hero_guards", #This will return the guard agent_id
+   [
+      (try_for_range, ":cur_hero", 0, "$g_hero_guard_total"), ### MOD GUARD NUM
+         (troop_get_slot, ":hero_guard_agent", "trp_array_agents", ":cur_hero"),
+         (troop_set_slot, "trp_array_agents", ":cur_hero", -1),
+         (agent_is_active, ":hero_guard_agent"),
+         (agent_is_alive, ":hero_guard_agent"),
+         (agent_is_human, ":hero_guard_agent"),
+         (agent_slot_eq, ":hero_guard_agent", slot_agent_is_hero_guard, 1),
+         (agent_set_slot, ":hero_guard_agent", slot_agent_is_hero_guard, 0),
+         (remove_agent, ":hero_guard_agent"),
+         (val_sub, "$g_hero_guards_quest", 1), 
+      (try_end),
+   ]),
+   #daimyo script_dy_quest_get_destination_point
+   # Selects a random quest type and waits until certain conditions are met before it executes
+   ("dy_quest_get_destination_point",
+   [
+
+        (store_script_param, ":start_point", 1),
+        (store_script_param, ":last_point", 2),
+        (store_script_param, ":first_run", 3),
+        (try_begin),
+           (entry_point_get_position, pos22, ":start_point"),
+           (assign, ":best_entry_point", -1),
+           (assign, ":farthest_entry", -1), #this is a bool to seal farthest entry
+           (assign, ":last_entry_distance", -1),
+            #Escort/Assassin 108-120 Entry, 120-127 Destination points (Not on Final Point)
+           (assign, ":start_entry", 108),
+           (assign, ":end_entry", 118), #-1 so 120
+           (try_begin), #Determine dest max distance based on number of possible points (but keeping it still dynamic)
+               (ge, "$g_dy_vip_points_left", 5), 
+               (try_begin), #Horse?
+                  (agent_get_horse, ":hero_horse_agent", "$g_agent_hero_global_id_1"),
+                  (eq, ":hero_horse_agent", -1), #No Horse?
+                  (store_random_in_range, ":entry_point_max_distance", 6250000, 25000000), #250 meters min, 500m max
+               (else_try),
+                  (store_random_in_range, ":entry_point_max_distance", 9000000, 100000000), #300 meters min, 500m max
+               (try_end),
+               (eq, ":first_run", 0), 
+               (try_begin),
+                  (store_random_in_range, ":do_dest_point", 0, 100),
+                  (try_begin),
+                     (lt, ":do_dest_point", 30),
+                     (assign, ":start_entry", 118),
+                  (try_end),
+               (try_end),
+               (assign, ":end_entry", 128),
+           (else_try),   
+               (eq, "$g_dy_vip_points_left", 4), 
+               (try_begin), #Horse?
+                  (agent_get_horse, ":hero_horse_agent", "$g_agent_hero_global_id_1"),
+                  (eq, ":hero_horse_agent", -1), #No Horse?
+                  (store_random_in_range, ":entry_point_max_distance", 9000000, 25000000), #300 meters min, 500m max
+               (else_try),
+                  (store_random_in_range, ":entry_point_max_distance", 12250000, 100000000), #350 meters min, 1000m max
+               (try_end),
+               (eq, ":first_run", 0),
+               (try_begin),
+                  (store_random_in_range, ":do_dest_point", 0, 100),
+                  (try_begin),
+                     (lt, ":do_dest_point", 40),
+                     (assign, ":start_entry", 118),
+                  (try_end),
+               (try_end),
+               (assign, ":end_entry", 128),
+           (else_try),
+               (eq, "$g_dy_vip_points_left", 3), 
+               (try_begin), #Horse?
+                  (agent_get_horse, ":hero_horse_agent", "$g_agent_hero_global_id_1"),
+                  (eq, ":hero_horse_agent", -1), #No Horse?
+                  (store_random_in_range, ":entry_point_max_distance", 9000000, 100000000), #300 meters min, 1000m max
+               (else_try),
+                  (store_random_in_range, ":entry_point_max_distance", 16000000, 100000000), #400 meters min, 1000m max
+               (try_end),
+               (eq, ":first_run", 0),
+               (try_begin),
+                  (store_random_in_range, ":do_dest_point", 0, 100),
+                  (try_begin),
+                     (lt, ":do_dest_point", 50),
+                     (assign, ":start_entry", 118),
+                  (try_end),
+               (try_end),
+               (assign, ":end_entry", 128),
+           (else_try),
+               (eq, "$g_dy_vip_points_left", 2), 
+               (try_begin), #Horse?
+                  (agent_get_horse, ":hero_horse_agent", "$g_agent_hero_global_id_1"),
+                  (eq, ":hero_horse_agent", -1), #No Horse?
+                  (store_random_in_range, ":entry_point_max_distance", 12250000, 100000000), #350 meters min, 1000m max
+               (else_try),
+                  (store_random_in_range, ":entry_point_max_distance", 20250000, 100000000), #450 meters min, 1000m max
+               (try_end),
+               (eq, ":first_run", 0), 
+               (assign, ":end_entry", 128),
+           (else_try),
+               (eq, "$g_dy_vip_points_left", 1), 
+               (try_begin), #Horse?
+                  (agent_get_horse, ":hero_horse_agent", "$g_agent_hero_global_id_1"),
+                  (eq, ":hero_horse_agent", -1), #No Horse?
+                  (store_random_in_range, ":entry_point_max_distance", 16000000, 100000000), #400 meters min, 1000m max
+               (else_try),
+                  (store_random_in_range, ":entry_point_max_distance", 25000000, 100000000), #500 meters min, 1000m max
+               (try_end),
+               (eq, ":first_run", 0),
+               (assign, ":end_entry", 118), #-1 so 120
+           (try_end),
+           
+           (try_for_range, ":cur_entry_point", ":start_entry", ":end_entry"), #pick best spawn point
+             (neq, ":cur_entry_point", ":start_point"),
+             (neq, ":cur_entry_point", ":last_point"),
+             (entry_point_get_position, pos23, ":cur_entry_point"),
+             (get_sq_distance_between_positions, ":distance_between_entries", pos22, pos23),
+             (call_script, "script_dy_determine_farthest_entry_point", ":distance_between_entries"),
+             (assign, ":farthest_entry", reg23),
+             (gt, ":farthest_entry", ":last_entry_distance"),
+             (lt, ":farthest_entry", ":entry_point_max_distance"),
+             (assign, ":last_entry_distance", ":farthest_entry"),
+             (assign, ":best_entry_point", ":cur_entry_point"),
+             (store_div, ":farthest_entry_simple", ":last_entry_distance", 100),
+             (store_sqrt, ":farthest_entry_simple", ":farthest_entry_simple"),
+             (val_div, ":farthest_entry_simple", 10),
+             (assign, reg24, ":farthest_entry_simple"),
+             (display_message, "@Farthest entry is {reg23} distance."),
+             (display_message, "@Farthest entry translated {reg24} meters."),
+           (try_end),
+
+           (try_begin), #If no point found choose random START
+             (eq, ":best_entry_point", -1),
+             (store_random_in_range, ":best_entry_point", ":start_entry", ":end_entry"), 
+             (try_begin),
+               (eq, ":best_entry_point", ":start_point"),
+               (try_begin),
+                 (neq, ":best_entry_point", ":start_entry"),
+                 (val_sub, ":best_entry_point", 1),
+               (else_try),
+                 (neq, ":best_entry_point", ":end_entry"),
+                 (val_add, ":best_entry_point", 1),
+               (try_end),
+             (try_end),
+           (try_end),  #If no point found choose random END
+           (assign, reg10, ":best_entry_point"),
+           (display_message, "@DESTINATION ENTRY POINT: {reg10}."),
+        (try_end),
+   ]),
+
+   #daimyo script_daimyo_next_wave_on_hero_fade
+   # Monitors active quests to see if they have been completed or failed
+   ("daimyo_next_wave_on_hero_fade",
+   [
+      (assign, "$g_multiplayer_ccoop_enemy_respawn_secs", 31), # set 31 secs left for next wave
+      (assign, "$g_multiplayer_ccoop_enable_count_down", 1), # enable count down
+      (call_script, "script_multiplayer_ccoop_start_player_and_squad_respawn_period", 1),
+   ]),
+   #daimyo script_daimyo_monitor_quest
+   # Monitors active quests to see if they have been completed or failed
+   ("daimyo_monitor_quest",
+   [
+      (store_script_param, ":agent_team_no", 1),
+      (try_begin),
+            (this_or_next|eq, "$g_chosen_quest_type", 0),
+            (eq, "$g_chosen_quest_type", 1),
+            (try_begin),
+               (lt, "$g_quest_expire_countdown", 1),
+               (try_begin), #which team to determine complete or fail?
+                  (eq, ":agent_team_no", 0),
+                  (agent_is_alive, "$g_agent_hero_global_id_1"),
+                  (assign, "$g_dy_quest_complete", 1),
+               (else_try),
+                  (eq, ":agent_team_no", 1),
+                  (agent_is_alive, "$g_agent_hero_global_id_1"),
+                  (assign, "$g_dy_quest_complete", 2),
+               (try_end),
+               #(remove_agent, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                  (eq, ":agent_team_no", 1),
+                  (eq, "$g_global_enemy_count", 1),
+                  (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+                  (call_script, "script_daimyo_next_wave_on_hero_fade"),
+               (try_end),
+               (agent_fade_out, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                   (eq, ":agent_team_no", 0),
+                   (val_sub, "$g_global_friendly_count", 1),
+               (else_try),
+                  (eq, ":agent_team_no", 1),
+                  (val_sub, "$g_global_enemy_count", 1),
+               (try_end),
+               (call_script, "script_daimyo_determine_quest_reward_penalty"),
+            (else_try),
+               (gt, "$g_dy_vip_points_left", 1),
+               (agent_get_position, pos22, "$g_agent_hero_global_id_1"),
+               (entry_point_get_position, pos23, "$g_vip_hero_destination_point"),
+               (get_sq_distance_between_positions, reg18, pos22, pos23),
+               (le, reg18, 2500),
+               (val_sub, "$g_dy_vip_points_left", 1),
+               (call_script, "script_dy_quest_get_destination_point", "$g_vip_hero_destination_point", "$g_vip_agent_hero_spawn_point", 0), #Lets get new point
+               (assign, "$g_vip_agent_hero_spawn_point", "$g_vip_hero_destination_point"),
+               (assign, "$g_vip_hero_destination_point", reg10),
+               (entry_point_get_position, pos23, "$g_vip_hero_destination_point"),
+               (agent_set_scripted_destination, "$g_agent_hero_global_id_1", pos23),
+               (prop_instance_set_position, "$g_dest_flag", pos23),
+               (call_script, "script_daimyo_quest_broadcast_waypoint_info"),
+            (else_try),
+               (eq, "$g_dy_vip_points_left", 1),
+               (agent_get_position, pos22, "$g_agent_hero_global_id_1"),
+               (entry_point_get_position, pos23, "$g_vip_hero_destination_point"),
+               (get_sq_distance_between_positions, reg18, pos22, pos23),
+               (le, reg18, 2500),
+               (try_begin), #which team to determine complete or fail?
+                  (eq, ":agent_team_no", 0),
+                  (assign, "$g_dy_quest_complete", 1),
+                  (display_message, "@QUEST COMPLETE."),
+               (else_try),
+                  (eq, ":agent_team_no", 1),
+                  (assign, "$g_dy_quest_complete", 2),
+                  (display_message, "@QUEST FAILED."),
+               (try_end),
+               #(remove_agent, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                  (eq, ":agent_team_no", 1),
+                  (eq, "$g_global_enemy_count", 1),
+                  (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+                  (call_script, "script_daimyo_next_wave_on_hero_fade"),
+               (try_end),
+               (agent_fade_out, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                   (eq, ":agent_team_no", 0),
+                   (val_sub, "$g_global_friendly_count", 1),
+               (else_try),
+                  (eq, ":agent_team_no", 1),
+                  (val_sub, "$g_global_enemy_count", 1),
+               (try_end),
+               (call_script, "script_daimyo_determine_quest_reward_penalty"),
+            (try_end),
+            (display_message, "@Agent Being Monitored, distance to destination: {reg18}."),
+      (else_try),
+         (this_or_next|eq, "$g_chosen_quest_type", 2),
+         (eq, "$g_chosen_quest_type", 3),
+
+         (lt, "$g_quest_expire_countdown", 1),
+         (try_begin), #which team to determine complete or fail?
+            (eq, ":agent_team_no", 0),
+            (agent_is_alive, "$g_agent_hero_global_id_1"),
+            (assign, "$g_dy_quest_complete", 1),
+            (display_message, "@QUEST COMPLETE."),
+         (else_try),
+            (eq, ":agent_team_no", 1),
+            (agent_is_alive, "$g_agent_hero_global_id_1"),
+            (assign, "$g_dy_quest_complete", 2),
+            (display_message, "@QUEST FAILED."),
+         (try_end),
+
+         (try_begin),
+            (eq, ":agent_team_no", 1),
+            (eq, "$g_global_enemy_count", 1),
+            (gt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+            (call_script, "script_daimyo_next_wave_on_hero_fade"),
+         (try_end),
+         (agent_fade_out, "$g_agent_hero_global_id_1"),
+         (try_begin),
+             (eq, ":agent_team_no", 0),
+             (val_sub, "$g_global_friendly_count", 1),
+         (else_try),
+            (eq, ":agent_team_no", 1),
+            (val_sub, "$g_global_enemy_count", 1),
+         (try_end),
+         (call_script, "script_daimyo_determine_quest_reward_penalty"),
+      (else_try),   #Other quest?
+      (try_end),
+      #trp_coop_winged_hussars
+      #(add_visitors_to_current_scene, <entry_no>, <troop_id>, <number_of_troops>, <team_no>, <group_no>),
+   ]),
+   #script_daimyo_quest_broadcast_waypoint_info
+   #This function handles escort quest messages
+   ("daimyo_quest_broadcast_waypoint_info",
+   [
+      (try_begin),
+         (eq, "$g_dy_quest_in_progress", 1), #Start Quest Text Countdown?
+         (eq, "$g_vip_agent_spawned", 1),
+         (get_max_players, ":num_players"),
+         (assign, ":ready_to_broadcast", 0),
+         (try_begin),
+            (eq, "$g_chosen_quest_type", 0), #Friendly Escort
+            (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+            (assign, reg0, "$g_dy_vip_points_left"),
+            (assign, s1, "$g_agent_hero_global_id_1"),
+            (str_store_string, s10, "str_s0_vip_reached_point_reg0_points_remaining_escort_s1_friendly"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, "$g_chosen_quest_type", 1), #Enemy Escort
+            (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+            (assign, reg0, "$g_dy_vip_points_left"),
+            (assign, s1, "$g_agent_hero_global_id_1"),
+            (str_store_string, s10, "str_s0_vip_reached_point_reg0_points_remaining_kill_s1_enemy"),
+            (assign, ":ready_to_broadcast", 1),
+         (try_end),
+         (eq, ":ready_to_broadcast", 1),
+         (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (try_end), #player try for range
+      (try_end),
+   ]),
+   #script_daimyo_broadcast_quest_info
+   #This function handles most if not all the dy custom quest broadcast
+   ("daimyo_broadcast_quest_info",
+   [
+       
+      #(try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+         #(player_is_active, ":player_no"),
+         #(str_store_string, s4, "str_server_announcement_1"),
+         #(multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s4), 
+      #(try_end),
+
+      (try_begin),
+         (eq, "$g_dy_quest_in_progress", 1), #Start Quest Text Countdown?
+         (eq, "$g_vip_agent_spawned", 0),
+         (try_begin), #======Intro Countdown Quest START========
+            (assign, ":ready_to_broadcast", 0),
+            (gt, "$g_dy_quest_start_countdown", 0),
+            (this_or_next|eq, "$g_chosen_quest_type", 0),
+            (this_or_next|eq, "$g_chosen_quest_type", 1),
+            (this_or_next|eq, "$g_chosen_quest_type", 2), 
+            (eq, "$g_chosen_quest_type", 3),
+            (try_begin),
+               (eq, "$g_chosen_quest_type", 0), #Friendly escort
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (try_begin),
+                  (store_mod, ":expire_modulo", "$g_dy_quest_start_countdown", 10),
+                  (eq, ":expire_modulo", 0),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (lt, "$g_dy_quest_start_countdown", 6),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+               (assign, reg0, "$g_dy_quest_start_countdown"),
+               (assign, reg1, "$g_dy_vip_points_left"),
+               (assign, reg2, "$g_dy_quest_reward_selected"),
+               #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+               (assign, reg3, "$g_dy_quest_penalty_selected"),
+               (str_store_string, s10, "str_s0_quest_starting_in_reg0_seconds_dest_points_reg1_reward_reg2_fail_penalty_reg3"),
+            (else_try),
+               (try_begin),
+                  (store_mod, ":expire_modulo", "$g_dy_quest_start_countdown", 10),
+                  (eq, ":expire_modulo", 0),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (lt, "$g_dy_quest_start_countdown", 6),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+               (eq, "$g_chosen_quest_type", 1), #Enemy escort
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (assign, reg0, "$g_dy_quest_start_countdown"),
+               (assign, reg1, "$g_dy_vip_points_left"),
+               (assign, reg2, "$g_dy_quest_reward_selected"),
+               #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+               (assign, reg3, "$g_dy_quest_penalty_selected"),
+               (str_store_string, s10, "str_s0_quest_starting_in_reg0_seconds_dest_points_reg1_reward_reg2_fail_penalty_reg3"),
+            (else_try),
+               (try_begin),
+                  (store_mod, ":expire_modulo", "$g_dy_quest_start_countdown", 10),
+                  (eq, ":expire_modulo", 0),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (lt, "$g_dy_quest_start_countdown", 6),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+               (eq, "$g_chosen_quest_type", 2), #Assasin Quest
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (assign, reg0, "$g_dy_quest_start_countdown"),
+               (store_div, ":quest_expire_min", "$g_quest_expire_countdown", 60),
+               (assign, reg1, ":quest_expire_min"),
+               (assign, reg2, "$g_dy_quest_reward_selected"),
+               #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+               (assign, reg3, "$g_dy_quest_penalty_selected"),
+               (str_store_string, s10, "str_s0_quest_starting_in_reg0_seconds_assassin_time_reg1_reward_reg2_fail_penalty_reg3"),
+            (else_try),
+               (try_begin),
+                  (store_mod, ":expire_modulo", "$g_dy_quest_start_countdown", 10),
+                  (eq, ":expire_modulo", 0),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (lt, "$g_dy_quest_start_countdown", 6),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+               (eq, "$g_chosen_quest_type", 3), #Defend Quest
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (assign, reg0, "$g_dy_quest_start_countdown"),
+               (store_div, ":quest_expire_min", "$g_quest_expire_countdown", 60),
+               (assign, reg1, ":quest_expire_min"),
+               (assign, reg2, "$g_dy_quest_reward_selected"),
+               #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+               (assign, reg3, "$g_dy_quest_penalty_selected"),
+               (str_store_string, s10, "str_s0_quest_starting_in_reg0_seconds_defend_time_reg1_reward_reg2_fail_penalty_reg3"),
+            (try_end),
+            (try_begin),
+               (eq, ":ready_to_broadcast", 1),
+               (get_max_players, ":num_players"),  
+               (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+                  (player_is_active, ":player_no"),
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (try_end), #player try for range
+            (try_end),
+         (try_end), #==========Intro Countdown Quest END========
+
+      (else_try),  #========QUEST STARTED ==========START
+         (eq, "$g_dy_quest_in_progress", 1), #Start Quest Text Countdown?
+         (le, "$g_dy_quest_start_countdown", 0),
+         (eq, "$g_vip_agent_spawned", 1),
+         (eq, "$started_broadcast_ran", 0),
+         (assign, "$started_broadcast_ran", 1),
+         (assign, ":ready_to_broadcast", 0),
+         #(display_message, "@Quest Started-------1"),
+         (try_begin),
+               (eq, "$g_chosen_quest_type", 0), #Friendly escort
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_agent_name, s1, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_quest_started_escort_s1_marked_by_red_flag_blue_flag_is_dest"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_chosen_quest_type", 1), #Enemy escort
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_agent_name, s1, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_quest_started_kill_s1_marked_by_red_flag_blue_flag_is_dest"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_chosen_quest_type", 2), #Assasin Quest
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_agent_name, s1, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_quest_started_kill_s1_marked_red_flag"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_chosen_quest_type", 3), #Defend Quest
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_agent_name, s1, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_quest_started_defend_s1_marked_red_flag"),
+               (assign, ":ready_to_broadcast", 1),
+            (try_end), 
+            (eq, ":ready_to_broadcast", 1),
+            #(display_message, "@Quest Started-------2"),
+            (get_max_players, ":num_players"),
+            (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+                  (player_is_active, ":player_no"),
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+                  (try_begin),
+                     (player_get_agent_id, ":player_agent_id", ":player_no"),
+                     (agent_is_alive, ":player_agent_id"),
+                     (agent_get_position, pos16, ":player_agent_id"),
+                     (copy_position,pos60,pos16),
+                     (call_script,"script_multiplayer_server_play_sound_at_position","snd_flag_returned"),
+                  (try_end),
+            (try_end),
+                  #========QUEST STARTED ==========END
+      (else_try), #========Specific/General Quest Expire Countdown==========START
+         (eq, "$g_dy_quest_in_progress", 1), #Start Quest Text Countdown?
+         (lt, "$g_dy_quest_start_countdown", 1),
+         (eq, "$g_vip_agent_spawned", 1),
+         (assign, ":ready_to_broadcast", 0), #Only broadcast if at right moment
+         (try_begin), #Are we in Countdown Minutes?
+            (gt, "$g_quest_expire_countdown", 60),
+            (store_mod, ":expire_modulo", "$g_quest_expire_countdown", 60),
+            (eq, ":expire_modulo", 0),
+            (store_div, ":quest_expire_min", "$g_quest_expire_countdown", 60),
+            (assign, reg0, ":quest_expire_min"),
+            (try_begin), #Specific Time Expire Message START1
+               (this_or_next|eq, "$g_chosen_quest_type", 1),
+               (this_or_next|eq, "$g_chosen_quest_type", 2), 
+               (eq, "$g_chosen_quest_type", 3),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                  (eq, "$g_chosen_quest_type", 1),
+                  (str_store_string, s10, "str_reg0_min_left_kill_s0"),
+               (else_try),
+                  (eq, "$g_chosen_quest_type", 2),
+                  (str_store_string, s10, "str_reg0_min_left_kill_s0"),
+               (else_try),
+                  (eq, "$g_chosen_quest_type", 3),
+                  (str_store_string, s10, "str_reg0_min_left_defend_s0"),
+               (try_end),
+            (else_try), #General Time Expire Message
+               (eq, "$g_chosen_quest_type", 0),
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_string, s10, "str_s0_quest_expires_in_reg0_minutes"),
+            (try_end),#Specific Time Expire Message END1
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),  #Are we in Countdown Seconds?
+            (le, "$g_quest_expire_countdown", 60),
+            (ge, "$g_quest_expire_countdown", 10),
+            (store_mod, ":expire_modulo", "$g_quest_expire_countdown", 10),
+            (eq, ":expire_modulo", 0),
+            (assign, reg0, "$g_quest_expire_countdown"),
+            (try_begin), #Specific Time Expire Message START2
+               (this_or_next|eq, "$g_chosen_quest_type", 1),
+               (this_or_next|eq, "$g_chosen_quest_type", 2), 
+               (eq, "$g_chosen_quest_type", 3),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                  (eq, "$g_chosen_quest_type", 1),
+                  (str_store_string, s10, "str_reg0_sec_left_kill_s0"),
+               (else_try),
+                  (eq, "$g_chosen_quest_type", 2),
+                  (str_store_string, s10, "str_reg0_sec_left_kill_s0"),
+               (else_try),
+                  (eq, "$g_chosen_quest_type", 3),
+                  (str_store_string, s10, "str_reg0_sec_left_defend_s0"),
+               (try_end),
+            (else_try), #General Time Expire Message
+               (eq, "$g_chosen_quest_type", 0),
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_string, s10, "str_s0_quest_expires_in_reg0_seconds"),
+            (try_end),#Specific Time Expire Message END2
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),  #Are we in Countdown < 10 Seconds?
+            (lt, "$g_quest_expire_countdown", 10),
+            (assign, reg0, "$g_quest_expire_countdown"),
+            (try_begin), #Specific Time Expire Message START3
+               (this_or_next|eq, "$g_chosen_quest_type", 1),
+               (this_or_next|eq, "$g_chosen_quest_type", 2), 
+               (eq, "$g_chosen_quest_type", 3),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (try_begin),
+                  (eq, "$g_chosen_quest_type", 1),
+                  (str_store_string, s10, "str_reg0_sec_left_kill_s0"),
+               (else_try),
+                  (eq, "$g_chosen_quest_type", 2),
+                  (str_store_string, s10, "str_reg0_sec_left_kill_s0"),
+               (else_try),
+                  (eq, "$g_chosen_quest_type", 3),
+                  (str_store_string, s10, "str_reg0_sec_left_defend_s0"),
+               (try_end),
+            (else_try), #General Time Expire Message
+               (eq, "$g_chosen_quest_type", 0),
+               (call_script, "script_dy_get_quest_type_str"), #Get quest type s0
+               (str_store_string, s10, "str_s0_quest_expires_in_reg0_seconds"),
+            (try_end),#Specific Time Expire Message END3
+            (assign, ":ready_to_broadcast", 1),
+         (try_end),
+         (eq, ":ready_to_broadcast", 1),
+         (get_max_players, ":num_players"),
+         (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               (try_begin),
+                  (gt, "$g_quest_expire_countdown", 60), 
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+               (else_try),
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+               (try_end),
+               
+         (try_end),
+         #========Specific/General Quest Expire Countdown==========END
+
+      #(else_try), More quests?
+      (try_end),
+   ]),
+
+   #script_dy_get_quest_type_str
+   #gets current quest type and returns string s0
+   ("dy_get_quest_type_str",
+   [
+      (try_begin),
+         (eq, "$g_chosen_quest_type", 0), #Friendly escort
+         (str_store_string, s0, "str_quest_type_vip_escort_friendly"),
+      (else_try),
+         (eq, "$g_chosen_quest_type", 1), #Enemy escort
+         (str_store_string, s0, "str_quest_type_vip_escort_enemy"),
+      (else_try),
+         (eq, "$g_chosen_quest_type", 2), #Assasin Quest
+         (str_store_string, s0, "str_quest_type_assassinate"),
+      (else_try),
+         (eq, "$g_chosen_quest_type", 3), #Defend Quest
+         (str_store_string, s0, "str_quest_type_defend_vip"),
+      (try_end),
+   ]),
+
+   #daimyo script_daimyo_broadcast_quest_reward_penalty
+   # Broadcast to player what reward/penalty they got based on quest
+   ("daimyo_broadcast_quest_reward_penalty",
+   [     (try_begin),
+            
+            (assign, ":ready_to_broadcast", 0),
+            (try_begin),
+               (eq, "$g_chosen_quest_type", 0), #VIP Escort Friendly
+               (try_begin),
+                  (eq, "$g_dy_quest_complete", 1), #Quest Completed
+                  (assign, reg0, "$g_dy_quest_reward_selected"),
+                  (str_store_string, s0, "str_quest_type_vip_escort_friendly"),
+                  (str_store_string, s10, "str_s0_quest_complete_reward_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (eq, "$g_dy_quest_complete", 2), #Quest Failed
+                  #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+                  (assign, reg0, "$g_dy_quest_penalty_selected"),
+                  (str_store_string, s0, "str_quest_type_vip_escort_enemy"),
+                  (str_store_string, s10, "str_s0_quest_failed_penalty_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+            (else_try),
+               (eq, "$g_chosen_quest_type", 1), #VIP Escort Enemy
+               (try_begin),
+                  (eq, "$g_dy_quest_complete", 1), #Quest Completed
+                  (assign, reg0, "$g_dy_quest_reward_selected"),
+                  (str_store_string, s0, "str_quest_type_vip_escort_enemy"),
+                  (str_store_string, s10, "str_s0_quest_complete_reward_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (eq, "$g_dy_quest_complete", 2), #Quest Failed
+                  #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+                  (assign, reg0, "$g_dy_quest_penalty_selected"),
+                  (str_store_string, s0, "str_quest_type_vip_escort_enemy"),
+                  (str_store_string, s10, "str_s0_quest_failed_penalty_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+            (else_try),
+               (eq, "$g_chosen_quest_type", 2), #Assassinate Enemy
+               (try_begin),
+                  (eq, "$g_dy_quest_complete", 1), #Quest Completed
+                  (assign, reg0, "$g_dy_quest_reward_selected"),
+                  (str_store_string, s0, "str_quest_type_assassinate"),
+                  (str_store_string, s10, "str_s0_quest_complete_reward_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (eq, "$g_dy_quest_complete", 2), #Quest Failed
+                  #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+                  (assign, reg0, "$g_dy_quest_penalty_selected"),
+                  (str_store_string, s0, "str_quest_type_assassinate"),
+                  (str_store_string, s10, "str_s0_quest_failed_penalty_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+            (else_try),
+               (eq, "$g_chosen_quest_type", 3), #Defend Friendly
+               (try_begin),
+                  (eq, "$g_dy_quest_complete", 1), #Quest Completed
+                  (assign, reg0, "$g_dy_quest_reward_selected"),
+                  (str_store_string, s0, "str_quest_type_defend_vip"),
+                  (str_store_string, s10, "str_s0_quest_complete_reward_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (else_try),
+                  (eq, "$g_dy_quest_complete", 2), #Quest Failed
+                  (assign, reg0, "$g_dy_quest_penalty_selected"),
+                  (str_store_string, s0, "str_quest_type_defend_vip"),
+                  (str_store_string, s10, "str_s0_quest_failed_penalty_reg0"),
+                  (assign, ":ready_to_broadcast", 1),
+               (try_end),
+            (try_end),
+            (eq, ":ready_to_broadcast", 1),
+            (get_max_players, ":num_players"), 
+            (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               (try_begin),
+                  (player_get_agent_id, ":player_agent_id", ":player_no"),
+                  (agent_is_alive, ":player_agent_id"),
+                  (agent_get_position, pos16, ":player_agent_id"),
+                  (copy_position,pos60,pos16),
+                  (try_begin),
+                     (eq, "$g_dy_quest_complete", 1), #Quest Completed
+                     (call_script,"script_multiplayer_server_play_sound_at_position","snd_money_received"),
+                     (call_script,"script_multiplayer_server_play_sound_at_position","snd_gong"),
+                  (else_try),
+                     (eq, "$g_dy_quest_complete", 2), #Quest Failed
+                     (call_script,"script_multiplayer_server_play_sound_at_position","snd_money_paid"),
+                     (call_script,"script_multiplayer_server_play_sound_at_position","snd_enemy_scored_a_point"),
+                  (try_end),
+               (try_end),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+            (try_end),
+         (try_end),
+
+   ]),
+
+   #daimyo script_daimyo_determine_guards_fate
+   # Determine guards fate based on quest, complete or fail
+   ("daimyo_determine_guards_fate",
+   [
+      (try_begin),
+      (assign, ":ready_to_broadcast", 0),
+         (try_begin),
+            (eq, "$g_chosen_quest_type", 0), #escort vip
+            (gt, "$g_hero_guards_quest", -1),
+            (try_begin),
+               (eq, "$g_dy_quest_complete", 1), #Quest Completed
+               (call_script, "script_dy_clear_charge_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_leave_his_guards_to_fight_as_thanks"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_dy_quest_complete", 2), #Quest Failed
+               (call_script, "script_dy_kill_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_guards_commit_suicide_because_failed"),
+               (assign, ":ready_to_broadcast", 1),
+            (try_end),
+         (else_try),
+            (eq, "$g_chosen_quest_type", 1), #kill escort
+            (gt, "$g_hero_guards_quest", -1),
+            (try_begin),
+               (eq, "$g_dy_quest_complete", 1), #Quest Completed
+               (call_script, "script_dy_kill_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_guards_commit_suicide_because_failed"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_dy_quest_complete", 2), #Quest Failed
+               (call_script, "script_dy_clear_charge_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_leaves_his_guards_to_fight_because_fail"),
+               (assign, ":ready_to_broadcast", 1),
+            (try_end),
+         (else_try),
+            (eq, "$g_chosen_quest_type", 2), #assassinate enemy
+            (gt, "$g_hero_guards_quest", -1),
+            (try_begin),
+               (eq, "$g_dy_quest_complete", 1), #Quest Completed
+               (call_script, "script_dy_kill_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_guards_commit_suicide_because_failed"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_dy_quest_complete", 2), #Quest Failed
+               (call_script, "script_dy_clear_charge_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_leaves_his_guards_to_fight_because_fail"),
+               (assign, ":ready_to_broadcast", 1),
+            (try_end),
+         (else_try),
+            (eq, "$g_chosen_quest_type", 3), #Defend vip
+            (gt, "$g_hero_guards_quest", -1),
+            (try_begin),
+               (eq, "$g_dy_quest_complete", 1), #Quest Completed
+               (call_script, "script_dy_clear_charge_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_leave_his_guards_to_fight_as_thanks"),
+               (assign, ":ready_to_broadcast", 1),
+            (else_try),
+               (eq, "$g_dy_quest_complete", 2), #Quest Failed
+               (call_script, "script_dy_kill_hero_guards"),
+               (str_store_agent_name, s0, "$g_agent_hero_global_id_1"),
+               (str_store_string, s10, "str_s0_guards_commit_suicide_because_failed"),
+               (assign, ":ready_to_broadcast", 1),
+            (try_end),
+         (try_end),
+         (try_begin),
+            (eq, ":ready_to_broadcast", 1),
+            (get_max_players, ":num_players"),
+            (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10), 
+            (try_end),
+         (try_end),
+      (try_end),
+   ]),
+
+   #daimyo script_daimyo_determine_quest_reward_penalty
+   # Hand out rewards based on quest and other parameters
+   ("daimyo_determine_quest_reward_penalty",
+   [
+      (try_begin), #Reward based on what quest
+         (this_or_next|eq, "$g_chosen_quest_type", 0),
+         (this_or_next|eq, "$g_chosen_quest_type", 1),
+         (this_or_next|eq, "$g_chosen_quest_type", 2),
+         (eq, "$g_chosen_quest_type", 3),
+         (call_script, "script_daimyo_broadcast_quest_reward_penalty"), #Broadcast
+         (try_begin), #Complete?
+            (eq, "$g_dy_quest_complete", 1), #Quest Completed
+            (get_max_players, ":num_players"),      
+            (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               (player_get_gold, ":player_gold", ":player_no"),
+               (val_add, ":player_gold", "$g_dy_quest_reward_selected"),
+               (player_set_gold, ":player_no", ":player_gold", multi_max_gold_that_can_be_stored),
+            (try_end),
+            # (val_add, "$g_consecutive_quests_completed", 1),
+            # (try_begin),
+            #    (ge, "$g_consecutive_quests_completed", "$g_quest_complete_reward_reinforcement"), #reward a reinforcement?
+            #    (val_add, "$g_reinforcement_tier_3", 1),
+            #    (assign, "$g_consecutive_quests_completed", 0),
+            # (try_end),
+            (try_begin),
+               (val_add, "$g_reinforcement_tier_3", 1),
+                (gt, "$g_reinforcement_tier_3", 2),
+                (assign, "$g_reinforcement_tier_3", 2),
+            (try_end),
+            (call_script, "script_dy_set_reinforcement_info"), #Add reinforcement to players and broadcast
+         (else_try), #Failed?
+            (eq, "$g_dy_quest_complete", 2), #Failed quest
+            (val_sub, "$g_reinforcement_tier_3", 1),
+               (try_begin),
+                  (lt, "$g_reinforcement_tier_3", 0),
+                  (assign, "$g_reinforcement_tier_3", 0),
+               (try_end),
+            (get_max_players, ":num_players"),      
+            (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               #(player_get_slot, ":player_first_spawn", ":player_no", slot_player_first_spawn),
+               #(eq, ":player_first_spawn", 1),
+               (player_get_gold, ":player_gold", ":player_no"),
+               #(store_mul, "$g_dy_quest_penalty_selected", "$g_dy_quest_reward_selected", 1.5), #Penalty = reward * 2
+               (try_begin),
+                  (gt, "$g_dy_quest_penalty_selected", ":player_gold"),
+                  (player_set_gold, ":player_no", 0, multi_max_gold_that_can_be_stored),
+               (else_try),
+                  (val_sub, ":player_gold", "$g_dy_quest_penalty_selected"),
+                  (player_set_gold, ":player_no", ":player_gold", multi_max_gold_that_can_be_stored),
+               (try_end),
+            (try_end),
+         (try_end),
+      (else_try),
+         #Other quest?
+      (try_end),
+      (call_script, "script_daimyo_determine_guards_fate"), #Guards?
+      (call_script, "script_daimyo_quest_reset"), #Reset quests
+      #trp_coop_winged_hussars
+      #(add_visitors_to_current_scene, <entry_no>, <troop_id>, <number_of_troops>, <team_no>, <group_no>),
+   ]),
+
+   
+   #daimyo script_dy_determine_farthest_entry_point
+   # Checks farthest entry point
+   ("dy_determine_farthest_entry_point",
+   [     
+         (store_script_param, ":distance_between_entries", 1),
+          (assign, ":farthest_entry", -1),
+          (try_begin),
+            (ge, ":distance_between_entries", 1000000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 1562500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 2250000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 3062500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 4000000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 5062500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 6250000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 7562500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 9000000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 10562500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 12250000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 14062500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 16000000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 18062500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 20250000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 22562500),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (try_begin),
+            (ge, ":distance_between_entries", 25000000),
+            (assign, ":farthest_entry", ":distance_between_entries"),
+          (try_end),
+          (assign, reg23, ":farthest_entry"),
+   ]),
+   
+   #daimyo script_set_ally_cart_attackers
+   #Set and manage ally cart attackers
+   ("set_ally_cart_attackers",
+   [  
+      (try_begin),
+        (scene_prop_get_instance, ":prison_cart_door_left", "spr_prison_cart_door_left", 0),
+        (scene_prop_get_instance, ":prison_cart_door_right", "spr_prison_cart_door_right", 0),
+        (store_sub, ":guards_remaining", 25, "$g_enemy_ally_cart_attackers"),
+        (gt, ":guards_remaining", 0),
+        (try_for_agents, ":cur_agent"), #Lets set atackers  positions to cart
+            (gt, ":guards_remaining", 0), #Break
+            (agent_is_active, ":cur_agent"),
+			(agent_get_team, ":dy_agent_team", ":cur_agent"),
+            (eq, ":dy_agent_team", 0),
+            (neq, ":cur_agent", "$g_agent_hero_global_id_1"),
+            (neg|agent_slot_eq, ":cur_agent", slot_agent_is_hero_guard, 1),
+            (neg|agent_slot_eq, ":cur_agent", slot_agent_is_vip_attacker, 1),
+            (agent_is_non_player, ":cur_agent"),
+            (agent_is_alive, ":cur_agent"),
+            (agent_is_human, ":cur_agent"),
+            (agent_slot_eq, ":cur_agent", slot_agent_is_ally_cart_attacker_agent, 0),
+            (store_random_in_range, ":chosen_door", 0, 100),
+            (try_begin),
+              (set_fixed_point_multiplier, 100),
+              (lt, ":chosen_door", 50),
+              (prop_instance_get_position, pos5, ":prison_cart_door_left"),
+              (store_random_in_range, ":x_pos_mod", -1, 1),
+              (store_random_in_range, ":y_pos_mod", -90, -90),
+			  (position_set_y, pos6, ":y_pos_mod"), 
+              (position_set_x, pos6, 0),
+              (position_set_z, pos6, 0), 
+              (position_transform_position_to_parent, pos4, pos5, pos6),
+            (else_try),
+              (set_fixed_point_multiplier, 100),
+              (prop_instance_get_position, pos5, ":prison_cart_door_right"),
+              (store_random_in_range, ":x_pos_mod", -1, 1),
+			  (store_random_in_range, ":y_pos_mod", -90, -90),
+              (position_set_y, pos6, ":y_pos_mod"), 
+              (position_set_x, pos6, 0),
+              (position_set_z, pos6, 0), 
+              (position_transform_position_to_parent, pos4, pos5, pos6),
+            (try_end),
+            (agent_clear_scripted_mode, ":cur_agent"),
+            (agent_set_scripted_destination, ":cur_agent", pos4, 1),
+            (agent_force_rethink, ":cur_agent"),
+            (agent_set_slot, ":cur_agent", slot_agent_is_ally_cart_attacker_agent, 1),
+            (agent_set_slot, ":cur_agent", slot_agent_is_in_scripted_mode, 1),
+			   (agent_ai_set_always_attack_in_melee, ":cur_agent", 1),
+            (try_for_range, ":agent_slot_no", 0, 4), #should be 0-4
+              #(agent_get_ammo, ":agent_slot_ammo_amt", ":cur_agent", 0),
+              #(gt, ":agent_slot_ammo_amt", 0),
+              (agent_get_item_slot, ":agent_item_slot_id", ":cur_agent", ":agent_slot_no"),
+              (agent_set_ammo, ":cur_agent", ":agent_item_slot_id", 0),
+            (try_end),
+            (val_add, "$g_enemy_ally_cart_attackers", 1),
+            (val_sub, ":guards_remaining", 1),
+        (try_end), #try for agents END
+      (try_end),
+   ]),
+   
+   #daimyo script_set_cart_defenders
+   #Set and manage cart defenders
+   ("set_cart_defenders",
+   [  
+      (try_begin),
+        (scene_prop_get_instance, ":prison_cart_door_left", "spr_prison_cart_door_left", 0),
+        (scene_prop_get_instance, ":prison_cart_door_right", "spr_prison_cart_door_right", 0),
+        (store_sub, ":guards_remaining", 8, "$g_enemy_cart_defenders"),
+        (gt, ":guards_remaining", 0),
+        (try_for_agents, ":cur_agent"), #Lets set guard positions to cart
+            (gt, ":guards_remaining", 0), #Break
+            (agent_is_active, ":cur_agent"),
+            (neq, ":cur_agent", "$g_agent_hero_global_id_1"),
+            (neg|agent_slot_eq, ":cur_agent", slot_agent_is_hero_guard, 1),
+            (neg|agent_slot_eq, ":cur_agent", slot_agent_is_vip_attacker, 1),
+            (agent_is_non_player, ":cur_agent"),
+            (agent_get_team, ":dy_agent_team", ":cur_agent"),
+            (eq, ":dy_agent_team", 1),
+            (agent_is_alive, ":cur_agent"),
+            (agent_is_human, ":cur_agent"),
+            (agent_slot_eq, ":cur_agent", slot_agent_is_cart_defender, 0),
+            (store_random_in_range, ":chosen_door", 0, 100),
+            (try_begin),
+              (set_fixed_point_multiplier, 100),
+              (lt, ":chosen_door", 50),
+              (prop_instance_get_position, pos5, ":prison_cart_door_left"),
+              (store_random_in_range, ":x_pos_mod", -1, 1),
+              (position_set_y, pos6, -200), 
+              (position_set_x, pos6, ":x_pos_mod"),
+              (position_set_z, pos6, 0), 
+              (position_transform_position_to_parent, pos4, pos5, pos6),
+            (else_try),
+              (set_fixed_point_multiplier, 100),
+              (prop_instance_get_position, pos5, ":prison_cart_door_right"),
+              (store_random_in_range, ":x_pos_mod", -1, 1),
+              (position_set_y, pos6, -200), 
+              (position_set_x, pos6, ":x_pos_mod"),
+              (position_set_z, pos6, 0), 
+              (position_transform_position_to_parent, pos4, pos5, pos6),
+            (try_end),
+            (agent_clear_scripted_mode, ":cur_agent"),
+            (agent_set_scripted_destination, ":cur_agent", pos4, 1),
+            (agent_force_rethink, ":cur_agent"),
+            (agent_set_slot, ":cur_agent", slot_agent_is_cart_defender, 1),
+            (agent_set_slot, ":cur_agent", slot_agent_is_in_scripted_mode, 1),
+            (val_add, "$g_enemy_cart_defenders", 1),
+            (val_sub, ":guards_remaining", 1),
+        (try_end), #try for agents END
+      (try_end),
+   ]),
+
+   #daimyo script_manage_monitor_horses
+   #Monitor enemy horses and kill for ones that havent moved in a while
+   ("manage_monitor_horses",
+   [
+      (try_begin), 
+         (try_for_agents, ":cur_agent"),
+            (try_begin), ####Enemy Horses With Enemy On Them START
+            (gt, "$g_global_enemy_count", 0),
+               (agent_is_non_player, ":cur_agent"),
+               (agent_is_active, ":cur_agent"),
+               (agent_get_team, ":agent_team", ":cur_agent"),
+               (eq, ":agent_team", 1),
+               (agent_is_alive, ":cur_agent"),
+               (agent_is_human, ":cur_agent"),
+               (agent_get_horse, ":agents_horse", ":cur_agent"),
+               (gt, ":agents_horse", -1), #Agent has horse
+               (agent_get_slot, ":horse_agent_saved_time", ":agents_horse", slot_agent_enemy_horse_timer),
+               (store_mission_timer_a, ":cur_time"),
+               (store_sub, ":elapsed_time", ":cur_time", ":horse_agent_saved_time"),
+               (gt, ":elapsed_time", "$g_kill_horse_no_move_time"),
+               (agent_get_position, pos49, ":agents_horse"),
+               (agent_get_slot, ":agents_horse_pos_x", ":agents_horse", slot_agent_horse_pos_x),
+               (agent_get_slot, ":agents_horse_pos_y", ":agents_horse", slot_agent_horse_pos_y),
+               (agent_get_slot, ":agents_horse_pos_z", ":agents_horse", slot_agent_horse_pos_z),
+               (position_set_x, pos50, ":agents_horse_pos_x"),
+               (position_set_y, pos50, ":agents_horse_pos_y"),
+               (position_set_z, pos50, ":agents_horse_pos_z"),
+               (get_sq_distance_between_positions, ":horse_change_distance", pos49, pos50),
+               #(assign, reg37, ":horse_change_distance"),
+               #(display_message, "@horse_change_distance{reg37}"),
+               (try_begin),
+                  (le, ":horse_change_distance", 400),
+                  (remove_agent, ":agents_horse"),
+               (else_try),
+                  (gt, ":elapsed_time", "$g_kill_horse_no_move_time"),
+                  (position_get_x, ":agents_horse_pos_x", pos49),
+                  (position_get_y, ":agents_horse_pos_y", pos49),
+                  (position_get_z, ":agents_horse_pos_z", pos49),
+                  (agent_set_slot, ":agents_horse", slot_agent_horse_pos_x, ":agents_horse_pos_x"),
+                  (agent_set_slot, ":agents_horse", slot_agent_horse_pos_y, ":agents_horse_pos_y"),
+                  (agent_set_slot, ":agents_horse", slot_agent_horse_pos_z, ":agents_horse_pos_z"),
+                  (agent_set_slot, ":agents_horse", slot_agent_enemy_horse_timer, ":cur_time"),
+               (try_end),
+            (try_end), ####Enemy Horses With Enemy On Them END
+
+            (try_begin), ####PLAYER HORSES START
+               #(neg|agent_is_non_player, ":cur_agent"),
+               (neg|agent_is_human, ":cur_agent"),
+               (agent_is_active, ":cur_agent"),
+               (agent_is_alive, ":cur_agent"),
+               (agent_slot_eq, ":cur_agent", slot_agent_is_player_horse, 1),
+               (agent_get_slot, ":player_horse_saved_time", ":cur_agent", slot_agent_player_horse_timer),
+               (store_mission_timer_a, ":cur_time"),
+               (store_sub, ":elapsed_time", ":cur_time", ":player_horse_saved_time"),
+               (try_begin),
+                  #(assign, reg30, ":elapsed_time"), #HORSE DEBUG
+                  (agent_get_rider, ":player_rider", ":cur_agent"),
+                  (try_begin),
+                     (agent_is_active, ":player_rider"),
+                     (eq, ":player_rider", -1),
+                     (gt, ":elapsed_time", "$g_kill_player_horse_time"),
+                     (agent_set_slot, ":cur_agent", slot_agent_is_player_horse, 0),
+                     (agent_fade_out, ":cur_agent"),
+                  (else_try),
+                     (agent_is_active, ":player_rider"),
+                     (neg|agent_is_non_player, ":player_rider"),
+                     (gt, ":player_rider", -1),
+                     (store_mission_timer_a, ":cur_time"),
+                     (agent_set_slot, ":cur_agent", slot_agent_player_horse_timer, ":cur_time"), #set time
+                  (try_end),
+               (else_try),
+                  (le, ":elapsed_time", "$g_kill_player_horse_time"),
+                  (agent_get_rider, ":player_rider", ":cur_agent"),
+                  (agent_is_active, ":player_rider"),
+                  (gt, ":player_rider", -1),
+                  (try_begin),
+                     (neg|agent_is_non_player, ":player_rider"),
+                     (store_mission_timer_a, ":cur_time"),
+                     (agent_set_slot, ":cur_agent", slot_agent_player_horse_timer, ":cur_time"), #set time
+                  (try_end),
+               (try_end),
+            (try_end),  ####PLAYER HORSES END
+
+            (try_begin), ####STRAY HORSES START
+               (neg|agent_is_human, ":cur_agent"),
+               (agent_is_active, ":cur_agent"),
+               (agent_is_alive, ":cur_agent"),
+               (agent_get_rider, ":agent_rider", ":cur_agent"),
+               (try_begin),
+                  (eq, ":agent_rider", -1),
+                  (agent_slot_eq, ":cur_agent", slot_agent_is_player_horse, 0),
+                  (try_begin),
+                     (agent_slot_eq, ":cur_agent", slot_agent_is_stray_horse, 1),
+                     (agent_get_slot, ":stray_horse_saved_time", ":cur_agent", slot_agent_stray_horse_timer),
+                     (store_sub, ":elapsed_time", ":cur_time", ":stray_horse_saved_time"),
+                     (gt, ":elapsed_time", "$g_kill_stray_horse_time"),
+                     (agent_set_slot, ":cur_agent", slot_agent_is_stray_horse, 0), #set as stray horse
+                     (agent_fade_out, ":cur_agent"),
+                  (try_end),
+               (else_try),
+                  (gt, ":agent_rider", -1),
+                  (try_begin), #Agent is non player rider
+                     (agent_is_non_player, ":agent_rider"),
+                     (agent_is_active, ":agent_rider"),
+                     (agent_is_alive, ":agent_rider"),
+                     (agent_slot_eq, ":cur_agent", slot_agent_is_stray_horse, 1),
+                     (store_mission_timer_a, ":cur_time"),
+                     (agent_set_slot, ":cur_agent", slot_agent_stray_horse_timer, ":cur_time"), #set time
+                     #(display_message, "@SET HORSE TIMER FOR ACTIVE NON PLAYER RIDER"),
+                     #(display_message, "@GET_slot_agent_stray_horse_timer {reg30}, store_mission_timer_a {reg31}, elapsed_time {reg32}"),
+                  
+                  (else_try), #Convert Agent is player rider
+                     (neg|agent_is_non_player, ":agent_rider"),
+                     (agent_is_active, ":agent_rider"),
+                     (agent_is_alive, ":agent_rider"),
+                     (agent_slot_eq, ":cur_agent", slot_agent_is_stray_horse, 1),
+                     (agent_set_slot, ":cur_agent", slot_agent_is_stray_horse, 0),
+                     (agent_set_slot, ":cur_agent", slot_agent_is_player_horse, 1),
+                     (store_mission_timer_a, ":cur_time"),
+                     (agent_set_slot, ":cur_agent", slot_agent_player_horse_timer, ":cur_time"), #set time
+                     #(display_message, "@SET HORSE TIMER FOR ACTIVE PLAYER RIDER"),
+                  (try_end),
+               (try_end),
+            (try_end), ####STRAY HORSES END
+         (try_end), #Try for agents END
+      (try_end),
+
+   ]),
+   
+   #daimyo script_dy_regulate_cart_hitters
+   # regulate cart hitters
+   ("dy_regulate_cart_hitters",
+   [  
+      (try_begin),
+         (get_max_players, ":num_players"),  #Broadcast to all players  
+         (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+            (player_is_active, ":player_no"),
+            (player_get_team_no, ":player_team", ":player_no"),
+            (eq, ":player_team", 0),
+            (player_get_agent_id, ":player_agent_id", ":player_no"),
+            (agent_is_active, ":player_agent_id"),
+            (agent_is_alive, ":player_agent_id"),
+            (try_begin),
+               (player_slot_eq, ":player_no", slot_player_first_hit_cart, 1),
+               (player_get_slot, ":player_hit_cart_timer", ":player_no", slot_player_hit_cart_timer),
+               (store_mission_timer_a, ":cur_time"),
+               (store_sub, ":elapsed_time", ":cur_time", ":player_hit_cart_timer"),
+               (try_begin),
+                  (le, ":elapsed_time", 16),
+                  (player_get_slot, ":player_cart_hit_num", ":player_no", slot_player_num_hit_cart),
+                  (ge, ":player_cart_hit_num", 8),
+                  (str_store_player_username, s0, ":player_no"),
+                  (str_store_string, s10, "str_auto_kick_s0_hit_cart_not_ready"),
+                  (get_max_players, ":num_players_broadcast"),  #Broadcast to all players  
+                  (try_for_range, ":player_no_broadcast", 1, ":num_players_broadcast"), #0 is server so starting from 1
+                     (multiplayer_send_string_to_player, ":player_no_broadcast", multiplayer_event_show_server_message, s10),
+                     (multiplayer_send_string_to_player, ":player_no_broadcast", multiplayer_event_show_server_message, s10),
+                  (try_end), #player try range inner end
+                  (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+                  (kick_player, ":player_no"),
+               (else_try),
+                  (gt, ":elapsed_time", 16),
+                  (player_set_slot, ":player_no", slot_player_first_hit_cart, 0),
+                  (player_set_slot, ":player_no", slot_player_hit_cart_timer, 0),
+                  (player_set_slot, ":player_no", slot_player_num_hit_cart, 0),
+               (try_end),
+            (try_end),
+         (try_end), #player try range END
+      (try_end),
+   ]),
+
+
+   #daimyo script_daimyo_determine_quest_compatible_maps
+   # Determines what are available on this map (assassinate, defend are automatically)
+   #Entry Points:
+   #Assassinate 80-87
+   #Defend      120-150
+   #Point A to B Escort/Assassin 150-180
+   ("daimyo_determine_quest_compatible_maps",
+   [  
+      (display_message, "@COMPATIBLE MAPS CHECK"),
+      (display_message, "@COMPATIBLE MAPS CHECK"),
+      (store_current_scene, ":cur_scene"), #DAIMYO GLOBAL SET QUESTS AVAILABLE BASED ON SCENE START
+      (try_begin),
+        (eq, ":cur_scene", "scn_mp_new_3"), #Monastery Fortress
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_hutor"), #Daimyo's Map
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_new_1"), #Pellenor_Redux 
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_polya"), #Ratka Invasion  
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_forest_edge"), #Vyborg
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_old_castle"), #York Town
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+        (assign, "$g_dy_reduce_enemy_spawn", 2),
+        (assign, "$g_kill_stray_horse_time", 5),
+        (assign, "$g_kill_horse_no_move_time", 5), #Kill Enemy Horse Time when position static for X amount of time
+        (assign, "$g_kill_player_horse_time", 60),
+        (assign, "$g_map_scale", 1),
+        (assign, "$g_max_team_1_agents", 120),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_forest_road"), #A Castle in the Hills
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_hillroad"), #Stronghold     
+        (assign, "$g_dy_quest_escort_vip_enabled", 0),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 0),
+        (assign, "$g_enable_quest", 1),
+        (assign, "$g_dy_reduce_enemy_spawn", 2),
+        (assign, "$g_kill_stray_horse_time", 5),
+        (assign, "$g_kill_horse_no_move_time", 5), #Kill Enemy Horse Time when position static for X amount of time
+        (assign, "$g_kill_player_horse_time", 60),
+        (assign, "$g_map_scale", 1),
+        (assign, "$g_max_team_1_agents", 120),
+        (assign, "$g_map_horses_enabled", 0),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_swamp_delta"), #Oreshek 
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_new_2"), #fortified town
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+        (assign, "$g_kill_stray_horse_time", 5),
+        (assign, "$g_kill_horse_no_move_time", 5), #Kill Enemy Horse Time when position static for X amount of time
+        (assign, "$g_kill_player_horse_time", 60),
+        (assign, "$g_map_scale", 1),
+        (assign, "$g_dy_reduce_enemy_spawn", 2),
+        (assign, "$g_max_team_1_agents", 120),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_marketplace"), #Nomad Camp   
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_river_village"), # village by the river
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_arena"), # Arena - D-Day
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+        (assign, "$g_kill_stray_horse_time", 5),
+        (assign, "$g_kill_horse_no_move_time", 5), #Kill Enemy Horse Time when position static for X amount of time
+        (assign, "$g_kill_player_horse_time", 60),
+        (assign, "$g_map_scale", 1),
+        (assign, "$g_dy_reduce_enemy_spawn", 2),
+        (assign, "$g_max_team_1_agents", 120),
+        #(assign, "$g_enemy_allowed_alive_3", 70),
+        #(store_div, "$g_enemy_allowed_reinforce", "$g_enemy_allowed_alive_3", 2),
+      (else_try),
+         (eq, ":cur_scene", "scn_mp_smolensk"), #Caligla map
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+         (eq, ":cur_scene", "scn_mp_yasna"), #Caligula maps
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),  
+         (eq, ":cur_scene", "scn_mp_totalwar"),#Random Plains Map Gigantic
+         (assign, "$g_dy_quest_escort_vip_enabled", 1),
+         (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+         (assign, "$g_max_team_1_agents", 150),
+         (assign, "$g_enable_quest", 1),
+         (assign, "$g_map_total_war", 1),
+         (assign, "$g_enemy_allowed_alive_init_1", 130),
+         (assign, "$g_enemy_allowed_alive_init_2", 120),
+         (assign, "$g_enemy_allowed_alive_init_3", 110),
+         (store_div, "$g_enemy_allowed_reinforce_init_1", "$g_enemy_allowed_alive_init_1", 2),
+         (store_div, "$g_enemy_allowed_reinforce_init_2", "$g_enemy_allowed_alive_init_2", 2),
+         (store_div, "$g_enemy_allowed_reinforce_init_3", "$g_enemy_allowed_alive_init_3", 2),
+         (assign, "$g_enemy_allowed_alive_1", 120),
+         (assign, "$g_enemy_allowed_alive_2", 110),
+         (assign, "$g_enemy_allowed_alive_3", 100),
+         (store_div, "$g_enemy_allowed_reinforce_1", "$g_enemy_allowed_alive_1", 2),
+         (store_div, "$g_enemy_allowed_reinforce_2", "$g_enemy_allowed_alive_2", 2),
+         (store_div, "$g_enemy_allowed_reinforce_3", "$g_enemy_allowed_alive_3", 2),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_crevasse"), #Caligulas Crevasse
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),  
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_troy_invasion"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),  
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_fortress"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),  
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_giants_path"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),  
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_edge"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),  
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_river_fortress"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_intersburg"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_steppefort"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),    
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_fakriye_castle"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),       
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_bohus_fortress"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),         
+      (else_try),  
+        (eq, ":cur_scene", "scn_mp_bohus_fortress"),
+        (assign, "$g_dy_quest_escort_vip_enabled", 1),
+        (assign, "$g_dy_quest_assassinate_escort_vip_enabled", 1),
+        (assign, "$g_enable_quest", 1),        
+         (assign, "$g_disable_horses", 1), 
+      (try_end),  #DAIMYO GLOBAL SET QUESTS AVAILABLE BASED ON SCENE END
+   ]),
+   
+   #daimyo script_daimyo_get_names_of_maps
+   # Gets map name and mod map name and places in s0 and s1
+   ("daimyo_get_names_of_maps",
+   [  
+      (store_current_scene, ":cur_scene"), #DAIMYO GLOBAL SET QUESTS AVAILABLE BASED ON SCENE START
+      (try_begin),
+        (eq, ":cur_scene", "scn_mp_new_3"), #Monastery Fortress
+        (str_store_string, s0, "str_mp_new_3"),
+        (str_store_string, s1, "str_mp_new_3_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_arena"), #Arena
+        (str_store_string, s0, "scn_mp_arena"),
+        (str_store_string, s1, "str_scn_mp_arena_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_hutor"), #Daimyo's Map
+        (str_store_string, s0, "str_scn_mp_hutor"),
+        (str_store_string, s1, "str_scn_mp_hutor_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_new_1"), #Pellenor_Redux 
+        (str_store_string, s0, "str_mp_new_1"),
+        (str_store_string, s1, "str_mp_new_1_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_polya"), #Troy Invasion  
+        (str_store_string, s0, "str_scn_mp_polya"),
+        (str_store_string, s1, "str_scn_mp_polya_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_forest_edge"), #Vyborg
+        (str_store_string, s0, "str_scn_mp_forest_edge"),
+        (str_store_string, s1, "str_scn_mp_forest_edge_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_old_castle"), #York Town
+        (str_store_string, s0, "str_scn_mp_old_castle"),
+        (str_store_string, s1, "str_scn_mp_old_castle_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_forest_road"), #A Castle in the Hills
+        (str_store_string, s0, "str_scn_mp_forest_road"),
+        (str_store_string, s1, "str_scn_mp_forest_road_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_hillroad"), #Stronghold     
+        (str_store_string, s0, "str_scn_mp_hillroad"),
+        (str_store_string, s1, "str_scn_mp_hillroad_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_swamp_delta"), #Oreshek 
+        (str_store_string, s0, "str_scn_mp_swamp_delta"),
+        (str_store_string, s1, "str_scn_mp_swamp_delta_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_new_2"), #fortified town
+        (str_store_string, s0, "str_mp_new_2"),
+        (str_store_string, s1, "str_mp_new_2_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_marketplace"), #Nomad Camp   
+        (str_store_string, s0, "str_scn_mp_marketplace"),
+        (str_store_string, s1, "str_scn_mp_marketplace_mod_name"),
+      (else_try),
+        (eq, ":cur_scene", "scn_mp_river_village"), # village by the river
+        (str_store_string, s0, "str_scn_mp_river_village"),
+        (str_store_string, s1, "str_scn_mp_river_village_mod_name"),
+      (try_end),  
+   ]),
+
+   #daimyo script_server_msg_friendly_forces_broadcast
+   # Broadcast forces every X minutes
+   # ("server_msg_friendly_forces_broadcast",
+   # [
+   #    (store_script_param, ":player_no", 1),
+   #    (try_begin),
+         
+   #       (assign, reg0, "$g_global_friendly_count"),
+   #       (assign, reg1, "$g_max_team_1_agents"),
+   #       (str_store_string, s23, "str_server_global_friendly_forces_reg0_out_of_reg1_remaining"),
+   #       (try_begin),
+   #          (assign, "$g_last_server_msg_tip", ":selected_tip"),
+   #          (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s23),
+   #       (try_end),
+
+   #    (try_end),
+   # ]),
+
+   #daimyo script_select_server_msg_tip_and_broadcast
+   # Select Random and broadcast server tip messages
+   ("select_server_msg_tip_and_broadcast",
+   [
+      (store_script_param, ":player_no", 1),
+      (try_begin),
+         (assign, ":ready_to_broadcast", 0),
+         (store_random_in_range, ":selected_tip", 0, "$g_max_server_msg_tips"),
+         (try_begin),
+            (eq, "$g_last_server_msg_tip", ":selected_tip"),
+            (try_begin),
+               (store_sub, ":max_tips", "$g_max_server_msg_tips", 1),
+               (neq, "$g_last_server_msg_tip", ":max_tips"),
+               (val_add, ":selected_tip", 1),
+            (else_try),
+               (neq, "$g_last_server_msg_tip", 0),
+               (val_sub, ":selected_tip", 1),
+            (try_end),
+         (try_end),
+         (try_begin),
+            (eq, ":selected_tip", 0),
+            (str_store_string, s23, "str_server_msg_tip_1"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 1),
+            (str_store_string, s23, "str_server_msg_tip_2"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 2),
+            (str_store_string, s23, "str_server_msg_tip_3"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 3),
+            (str_store_string, s23, "str_server_msg_tip_4"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 4),
+            (str_store_string, s23, "str_server_msg_tip_5"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 5),
+            (str_store_string, s23, "str_server_msg_tip_6"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 6),
+            (str_store_string, s23, "str_server_msg_tip_7"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 7),
+            (str_store_string, s23, "str_server_msg_tip_8"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 8),
+            (str_store_string, s23, "str_server_msg_tip_9"),
+            (assign, ":ready_to_broadcast", 1),
+         (else_try),
+            (eq, ":selected_tip", 9),
+            (str_store_string, s23, "str_server_msg_tip_10"),
+            (assign, ":ready_to_broadcast", 1),
+         (try_end),
+
+         (try_begin),
+            (eq, ":ready_to_broadcast", 1),
+            (assign, "$g_last_server_msg_tip", ":selected_tip"),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s23),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s23),
+         (try_end),
+
+      (try_end),
+   ]),
+
+   #daimyo script_dy_get_friendly_total
+   # Broadcast server intro messages
+   ("dy_get_friendly_total",
+   [
+      (try_begin),
+           (assign, ":total_players", 0),
+           (get_max_players, ":num_players"),  #Broadcast to all players  
+           (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+              (player_is_active, ":player_no"),
+              (player_get_team_no, ":player_team", ":player_no"),
+              (eq, ":player_team", 0),
+              (val_add, ":total_players", 1),
+           (try_end),
+           (store_mul, ":ai_troop_count", ":total_players", "$g_multiplayer_squad_size"),
+           (val_add, ":total_players", ":ai_troop_count"),
+           (assign, reg22, ":total_players"),
+      (try_end),
+   ]),
+   #daimyo script_dy_broadcast_server_intro_message
+   # Broadcast server intro messages
+   ("dy_broadcast_server_intro_message",
+   [
+      (store_script_param, ":player_no", 1),
+      (store_script_param, ":player_cur_message", 2),
+      (try_begin),
+         (assign, ":message_broadcasted", 0),
+         (player_get_slot, ":player_intro_saved_time", ":player_no", slot_player_intro_messages_timer),
+         #(player_get_slot, ":player_cur_message", ":player_no", slot_player_current_intro_message),
+         (store_mission_timer_a, ":cur_time"),
+         (store_sub, ":elapsed_time", ":cur_time", ":player_intro_saved_time"),
+         (try_begin),
+            (eq, ":player_cur_message", 1), #0 is on join only
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_2"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 2), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_3"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 3), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_4"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 4), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_5"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 5), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_6"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 6), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_7"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 7), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_8"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 8), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_9"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (else_try),
+            (eq, ":player_cur_message", 9), #0 is on join
+            (gt, ":elapsed_time", 5),
+            (str_store_string, s20, "str_server_announcement_10"),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),  
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s20),
+            (assign, ":message_broadcasted", 1),
+         (try_end),
+         (try_begin),
+            (eq, ":message_broadcasted", 1),
+            (val_add, ":player_cur_message", 1),
+            (player_set_slot, ":player_no", slot_player_current_intro_message, ":player_cur_message"),
+            (store_mission_timer_a, ":cur_time"),
+            (player_set_slot, ":player_no", slot_player_intro_messages_timer, ":cur_time"),
+         (try_end),
+      (try_end),
+
+   ]),
+   #daimyo script_daimyo_quest_reset
+   # Resets all quest variables and timer
+   ("daimyo_quest_reset",
+   [
+      (try_begin),
+         (display_message, "@QUEST SYSTEM RESET."),
+         (display_message, "@QUEST SYSTEM RESET."),
+         (display_message, "@QUEST SYSTEM RESET."),
+
+
+         #Daimyo Future Boss Globals
+         (assign, "$g_is_boss_round", 0),
+          #Daimyo Globals Quest
+      (assign, "$g_max_vip_attackers", 25),
+      (assign, "$started_broadcast_ran", 0),
+      (assign, "$g_hero_guard_total", -1),
+      (store_random_in_range, "$g_guard_hero_wait_interval", 5, 8),
+      (store_random_in_range, "$g_quest_main_countdown", 90, 240),    # dy quest count down
+      #(assign, "$g_quest_main_countdown", 10), #debug
+      (assign, "$g_dy_quest_in_progress", -1), # dy Is quest in progress? This disables quest counter in meantime til quest finished
+      (assign, "$g_dy_quest_complete", -1), #Dy Bool to trigger quest complete
+      (assign, "$g_agent_hero_global_id_1", -1), #Global agent hero
+      (assign, "$g_hero_guards_quest", -1), #Keep track of hero guards
+      (assign, "$g_enemy_vip_attackers", 0), #Enemy Vip attackers for Defend VIP quest #3
+      (store_random_in_range, "$g_enemy_vip_attackers_check", 20, 60),    #dy normal check for cart defenders
+      (assign, "$g_dy_quest_start_countdown", 31), 
+      (assign, "$g_dy_vip_points_left", -1), 
+      (assign, "$g_dy_max_vip_points", 6),  # actually 5
+      (assign, "$g_vip_hero_destination_point", 0), #Dy agent destination point to complete VIP A TO B Quest
+      (assign, "$g_chosen_quest_type", -1),
+      (assign, "$g_vip_agent_spawned", 0),
+      (assign, "$g_vip_agent_hero_spawn_point", -1),
+      (assign, "$g_enemy_spawn_point_1", -1),
+      (assign, "$g_enemy_spawn_point_2", -1),
+      (assign, "$g_quest_expire_countdown", 600), #dy this determines when quest expires (AI gets stuck etc.)
+		#Quest Flags:
+         #flag_kingdom_1 Scale: 10, 10, 30 #Hero Flag
+         #flag_kingdom_2 Scale: 40, 40, 40 #Dest Flag
+         #QUEST Entry Points:
+         #Assassinate 80-87
+         #Defend      88-107
+         #Point A to B Escort/Assassin 108-117 Entry, 118-127 Destination points (Not on Final Point)
+         (try_begin),
+            (prop_instance_get_position, pos1, "$g_heros_flag"),
+            (position_set_z, pos1, -20000), #200m down
+            (prop_instance_set_position, "$g_heros_flag", pos1),   
+            (prop_instance_get_position, pos2, "$g_dest_flag"),
+            (position_set_z, pos2, -20000), #200m down
+            (prop_instance_set_position, "$g_dest_flag", pos2),
+         (try_end),
+      (try_end),
+   ]),
+   #daimyo script_dy_auto_restart_message
+   # Notifies when 24 hour restart is in bound, 20 Minutes, 10 Minutes, 5 Minutes, 3 Minutes, 1 minute, 60-0.
+   ("dy_auto_restart_message",
+   [
+      (try_begin),
+         (val_sub, "$g_server_restart_time", 1),
+         (try_begin),
+           (assign, reg37, "$g_server_restart_time"),
+           (display_message, "@g_server_restart_time: {reg37}"),
+         (try_end),
+         (get_max_players, ":num_players"),
+         (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (player_is_active, ":player_no"),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               #(multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               #(multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (try_end), #player try for range
+      (try_end),
+   ]),
+   #daimyo script_dy_dedicated_console_debug
+   # Notifies when 24 hour restart is in bound, 20 Minutes, 10 Minutes, 5 Minutes, 3 Minutes, 1 minute, 60-0.
+   ("dy_dedicated_console_debug",
+   [
+      
+      (try_begin),
+         (try_begin),
+            #Total Agents
+            (assign, ":total_agents", 0),
+            (store_add, ":total_agents", "$g_global_friendly_count", "$g_global_enemy_count"),
+            (val_add, ":total_agents", "$g_global_horse_count"),
+           (gt, ":total_agents", 0),
+           (assign, reg37, ":total_agents"),
+           (display_message, "@total_agents: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_global_horse_count", 0),
+           (assign, reg37, "$g_global_horse_count"),
+           (display_message, "@g_global_horse_count: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_enemy_cart_defenders", 0),
+           (assign, reg37, "$g_enemy_cart_defenders"),
+           (display_message, "@g_enemy_cart_defenders: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_global_enemy_count", 0),
+           (assign, reg37, "$g_global_enemy_count"),
+           (display_message, "@g_global_enemy_count: {reg37}"),
+         (try_end),
+         (try_begin),
+            (gt, "$g_enemy_ally_cart_attackers", 0),
+           (assign, reg37, "$g_enemy_ally_cart_attackers"),
+           (display_message, "@g_enemy_ally_cart_attackers: {reg37}"),
+         (try_end),
+         (try_begin),
+           (assign, reg37, "$g_global_alive_player_count"),
+           (display_message, "@g_global_alive_player_count: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_global_friendly_count", 0),
+           (assign, reg37, "$g_global_friendly_count"),
+           (display_message, "@g_global_friendly_count: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_hero_guards_quest", 0),
+           (assign, reg37, "$g_hero_guards_quest"),
+           (display_message, "@g_hero_guards_quest: {reg37}"),
+         (try_end),
+         (try_begin),
+           (assign, reg37, "$g_multiplayer_ccoop_enemy_respawn_secs"),
+           (display_message, "@g_multiplayer_ccoop_enemy_respawn_secs: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_multiplayer_ccoop_wave_no", 0),
+           (assign, reg37, "$g_multiplayer_ccoop_wave_no"),
+           (display_message, "@current_wave_no: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_enemy_vip_attackers", 0),
+           (assign, reg37, "$g_enemy_vip_attackers"),
+           (display_message, "@g_enemy_vip_attackers: {reg37}"),
+         (try_end),
+      (try_end),
+   ]), 
+   
+   #daimyo script_dy_dedicated_console_debug
+   # Notifies when 24 hour restart is in bound, 20 Minutes, 10 Minutes, 5 Minutes, 3 Minutes, 1 minute, 60-0.
+   ("dy_dedicated_console_debug",
+   [
+      (try_begin),
+         (try_begin),
+           (gt, "$g_enemy_cart_defenders", 0),
+           (assign, reg37, "$g_enemy_cart_defenders"),
+           (display_message, "@g_enemy_cart_defenders: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_global_enemy_count", 0),
+           (assign, reg37, "$g_global_enemy_count"),
+           (display_message, "@g_global_enemy_count: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_global_friendly_count", 0),
+           (assign, reg37, "$g_global_friendly_count"),
+           (display_message, "@g_global_friendly_count: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_hero_guards_quest", 0),
+           (assign, reg37, "$g_hero_guards_quest"),
+           (display_message, "@g_hero_guards_quest: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_multiplayer_ccoop_wave_no", 0),
+           (assign, reg37, "$g_multiplayer_ccoop_wave_no"),
+           (display_message, "@current_wave_no: {reg37}"),
+         (try_end),
+         (try_begin),
+           (gt, "$g_enemy_vip_attackers", 0),
+           (assign, reg37, "$g_enemy_vip_attackers"),
+           (display_message, "@g_enemy_vip_attackers: {reg37}"),
+         (try_end),
+      (try_end),
+   ]), 
+   
+
+   #daimyo script_dy_cleanup_abandoned_squads
+   # Cleanup abandoned squads
+   ("dy_cleanup_abandoned_squads",
+   [
+      (try_begin),
+         (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 27),
+         (try_for_agents, ":cur_agent"),
+            (agent_is_active, ":cur_agent"),
+            (agent_is_non_player, ":cur_agent"),
+            (agent_is_human, ":cur_agent"),
+            (agent_is_alive, ":cur_agent"),
+            (agent_get_team, ":agent_team", ":cur_agent"),
+            (eq, ":agent_team", 0),
+            (try_begin),
+               (agent_slot_eq, ":cur_agent", slot_agent_is_reinforcement_agent, 1),
+               (agent_set_slot, ":cur_agent", slot_agent_is_reinforcement_agent, 0),
+               (agent_fade_out, ":cur_agent"),
+               (val_sub, "$g_global_friendly_count", 1),
+            (else_try),
+               (agent_slot_eq, ":cur_agent", slot_agent_player_leader_gone, 1),
+               (agent_set_slot, ":cur_agent", slot_agent_player_leader_gone, 0),
+               (agent_fade_out, ":cur_agent"),
+               (val_sub, "$g_global_friendly_count", 1),
+            (try_end),
+         (try_end),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_calculate_starting_wage
+   # Calculates Starting Wage
+   ("dy_calculate_starting_wage",
+   [
+      (try_begin),
+         (assign, ":dy_bonus_gold", 0),
+         (try_begin),
+            (gt, "$g_multiplayer_ccoop_wave_no", 20),
+            (assign, ":dy_bonus_gold", 1400),
+         (else_try),
+            (gt, "$g_multiplayer_ccoop_wave_no", 10),
+            (assign, ":dy_bonus_gold", 1200),
+         (else_try),
+            (assign, ":dy_bonus_gold", 1000),
+         (try_end),
+         (assign, reg0, ":dy_bonus_gold"),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_calculate_combat_gold
+   # Calculates Combat Gold
+   ("dy_calculate_combat_gold",
+   [
+      (try_begin),
+         (assign, ":dy_bonus_gold", 0),
+         (try_begin),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 1, 11),
+            (store_mul, ":dy_bonus_gold", "$g_combat_gold", 4),
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
+            (store_mul, ":dy_bonus_gold", "$g_combat_gold", 5),
+         (else_try),
+            (is_between, "$g_multiplayer_ccoop_wave_no", 21, 31),
+            (store_mul, ":dy_bonus_gold", "$g_combat_gold", 6),
+         (try_end),
+         (assign, reg0, ":dy_bonus_gold"),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_balance_round_agents_numbers
+   # Regulate number of agents spawning this round
+   ("dy_balance_round_agents_numbers",
+   [
+      (try_begin),
+         (ge, "$g_global_friendly_count", 150),
+         (assign, ":friendly_horse_count", 0),   
+            (try_for_agents, ":cur_agent"),
+               (agent_is_active, ":cur_agent"),
+               (agent_is_non_player, ":cur_agent"),
+               (agent_is_human, ":cur_agent"),
+               (agent_get_team, ":agent_team", ":cur_agent"),
+               (eq, ":agent_team", 0),
+               (agent_get_horse, ":agent_horse", ":cur_agent"),
+               (gt, ":agent_horse", -1),
+               (val_add, ":friendly_horse_count", 1),
+               (gt, ":friendly_horse_count", "$g_max_friendly_allowed_horses"), #50 default
+                  #(agent_fade_out, ":agent_horse"),
+            (try_end), #Try for agents END
+         (try_end),
+         (try_begin),
+            (gt, ":friendly_horse_count", "$g_max_friendly_allowed_horses"),
+            (get_max_players, ":num_players"),  #Broadcast to all players  
+            (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+               (store_sub, reg0, ":friendly_horse_count", "$g_max_friendly_allowed_horses"),
+               (assign, reg1, "$g_max_friendly_allowed_horses"),
+               (str_store_string, s10, "str_reg0_ai_horses_killed_current_max_reg1"),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+            (try_end), #TRY FOR RANGE PLAYER END
+         (try_end),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_regulate_high_ping_players
+   # Regulates players with high pings
+   ("dy_regulate_high_ping_players",
+   [
+      (store_script_param, ":player_no", 1),
+      (try_begin), #Is player already being monitored for ping?
+         (player_slot_eq, ":player_no", slot_player_ping_count_enabled, 0),
+         (player_set_slot, ":player_no", slot_player_ping_count_enabled, 1),
+         (player_set_slot, ":player_no", slot_player_high_ping_count, 0),
+      (else_try), #Lets monitor players ping
+         (player_slot_eq, ":player_no", slot_player_ping_count_enabled, 1),
+         (player_get_ping, ":player_ping", ":player_no"),
+         #(assign, reg1, ":player_ping"), debug
+         #(display_message, "@Player ping = {reg1}"),
+         (try_begin),
+            (gt, ":player_ping", "$g_max_allowed_ping"), #If ping is Higher than 400, add a point
+            (player_get_slot, ":player_ping_count", ":player_no", slot_player_high_ping_count),
+            (val_add, ":player_ping_count", 1),
+            (try_begin),
+               (gt, ":player_ping_count", 10), #If High ping points > 10 (seconds), then broadcast and kick
+               (assign, reg0, "$g_max_allowed_ping"),
+               (str_store_player_username, s0, ":player_no"),
+               (str_store_string, s10, "str_server_kick_s0_player_high_ping_reg0"),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (kick_player, ":player_no"),
+            (try_end),
+            (player_set_slot, ":player_no", slot_player_high_ping_count, ":player_ping_count"),
+         (else_try),
+            (lt, ":player_ping", "$g_max_allowed_ping"), #If Player has low ping, Minus points until 0
+            (player_get_slot, ":player_ping_count", ":player_no", slot_player_high_ping_count),
+            (val_sub, ":player_ping_count", 1),
+            (try_begin),
+               (le, ":player_ping_count", 0),
+               (assign, ":player_ping_count", 0),
+            (try_end),
+            (player_set_slot, ":player_no", slot_player_high_ping_count, ":player_ping_count"),
+         (try_end),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_calculate_dynamic_squad_size
+   # Calculates squad sizes
+   ("dy_calculate_dynamic_squad_size",
+   [
+      (try_begin),
+         (assign, ":max_team_1_agents", 0), #Local max_agents, this way we can change the g_max_team_1_agents for balance purposes
+         (store_sub, ":max_team_1_agents", "$g_max_team_1_agents", "$g_total_team_1_players"),
+         (store_div, "$g_multiplayer_squad_size", ":max_team_1_agents", "$g_total_team_1_players"), #This determines final outcome for squad sizes
+         (get_max_players, ":num_players"),  #Broadcast to all players  
+         (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+            (player_is_active, ":player_no"),
+            #Lets sync the max squad size to players
+            (multiplayer_send_int_to_player, ":player_no", multiplayer_event_return_squad_size, "$g_multiplayer_squad_size"),
+            #(neq, "$g_last_multiplayer_squad_size", "$g_multiplayer_squad_size"),
+            #(player_get_team_no, ":player_team_no",":player_no"),
+            #(eq, ":player_team_no", 0),
+            #(lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 30),
+            #(call_script, "script_dy_adjust_player_squads_sizes", ":player_no"), #Adjust size of squads
+         (try_end),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_adjust_player_squads_sizes
+   # Calculates squad sizes
+   ("dy_adjust_player_squads_sizes",
+   [
+      (store_script_param, ":player_no", 1),
+      (try_begin),
+         (assign, ":player_squad_size_count", 0),
+         (player_get_team_no, ":player_team", ":player_no"),
+         
+         (try_for_agents, ":agent_no"),
+            (agent_is_human, ":agent_no"),
+            (agent_is_alive, ":agent_no"),
+            (agent_is_non_player, ":agent_no"),           
+            (agent_get_group, ":agent_group", ":agent_no"),
+            (agent_get_team, ":agent_team", ":agent_no"),
+            (try_begin),
+               (eq, ":agent_group", ":player_no"), 
+               (eq, ":agent_team", ":player_team"), 
+               (val_add, ":player_squad_size_count", 1),
+               (try_begin),
+                  (gt, ":player_squad_size_count", "$g_multiplayer_squad_size"),
+                  (agent_fade_out, ":agent_no"),
+                  (val_sub, "$g_global_friendly_count", 1),
+               (try_end),
+            (try_end), 
+         (try_end),  #Try for agents END
+
+         (try_begin), #Broadcast changes
+            (player_is_active, ":player_no"),
+            (gt, ":player_squad_size_count", "$g_multiplayer_squad_size"),
+            (assign, reg0, ":player_squad_size_count"),
+            (assign, reg1, "$g_multiplayer_squad_size"),
+            (str_store_player_username, s0, ":player_no"),
+            (str_store_string, s10, "str_s0_your_squad_adjusted_from_reg0_to_reg1"),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+            (store_sub, reg0, ":player_squad_size_count", "$g_multiplayer_squad_size"),
+            (str_store_string, s11, "str_s0_alive_squad_removed_reg0"),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s11),
+         (try_end),   
+      (try_end),
+   ]),
+
+   #daimyo script_dy_spawn_team_reinforcements
+   # SPAWN Team Reinforcements
+   ("dy_spawn_team_reinforcements",
+   [
+      (try_begin),
+         (reset_visitors),
+         (store_current_scene, ":cur_scene"), #So we can use (add_visitors_to_current_scene, <entry_no>, <troop_id>, <number_of_troops>, <team_no>, <group_no>),
+         (modify_visitors_at_site, ":cur_scene"),
+         (store_random_in_range, ":start_point", 108, 118),
+         (assign, ":r_deployed", 0),
+         (try_begin),
+            (gt, "$g_reinforcement_tier_3", 0),
+            # (try_begin),#Refund reinforcement if not needed
+            #   (le, "$g_respawn_mid_reinforcement_counter", 0), #Mid way reinforcement wave spawn
+            #   (eq, "$g_mid_reinforcements_spawned_this_wave", 0), #Enabled?
+            #   (store_div, ":friendly_alive_required", "$g_max_team_1_agents", 2),
+            #   (gt, "$g_global_friendly_count", ":friendly_alive_required"),
+            #   (val_add, "$g_reinforcement_tier_3", 1),
+            # (try_end), 
+            (assign, ":r_deployed", 1),
+            (try_begin),
+               (gt, "$g_reinforcement_tier_3", 0),
+               (store_div, ":troop_amount", "$g_reinforcement_size_tier_3", 4),
+               (add_visitors_to_current_scene, ":start_point", "trp_merc_reytar_levelup", ":troop_amount", 0, -1),
+               (add_visitors_to_current_scene, ":start_point", "trp_merc_reytar", ":troop_amount", 0, -1),
+               (add_visitors_to_current_scene, ":start_point", "trp_rundashir_levelup", ":troop_amount", 0, -1),
+               (add_visitors_to_current_scene, ":start_point", "trp_quick_battle_troop_10", ":troop_amount", 0, -1),
+            (try_end),
+               (call_script, "script_multiplayer_ccoop_start_player_and_squad_respawn_period", 1), #If 1, this allows cart to spawn again (its basically assigning g_multiplayer_ccoop_spawn_alive_player_squad_and_minus_one_first_spawn_slots_and_minus_one_first_spawn_slots as 1 or 0)
+               (val_sub, "$g_reinforcement_tier_3", 1),
+               (try_begin),
+                  (lt, "$g_reinforcement_tier_3", 0),
+                  (assign, "$g_reinforcement_tier_3", 0),
+               (try_end),
+         (try_end),
+         (try_begin), #Broadcast if deployed
+            (eq, ":r_deployed", 1),
+            (get_max_players, ":num_players"), #Now broadcast
+            (try_for_range, ":player_no", 1, ":num_players"),
+               (player_is_active, ":player_no"),
+               (str_store_string, s10, "str_reinforcement_deployed"),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+               (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+            (try_end),
+            (call_script, "script_dy_broadcast_team_reinforcements", 1),
+         (try_end),
+      (try_end),
+   ]),
+  
+   #daimyo script_dy_spawn_starter_reinforcements
+   # SPAWN Starter Reinforcements on first wave
+   ("dy_spawn_starter_reinforcements",
+   [
+      (try_begin),
+         (reset_visitors),
+         (store_current_scene, ":cur_scene"), #So we can use (add_visitors_to_current_scene, <entry_no>, <troop_id>, <number_of_troops>, <team_no>, <group_no>),
+         (modify_visitors_at_site, ":cur_scene"),
+         #(store_random_in_range, ":start_point", 108, 118), Used for reinforcements
+         (store_random_in_range, ":start_point", 0, 70), #I believe this is for players only
+         (store_div, ":troop_amount", 40, 4),
+         (add_visitors_to_current_scene, ":start_point", "trp_merc_reytar_levelup", ":troop_amount", 0, -1),
+         (add_visitors_to_current_scene, ":start_point", "trp_merc_reytar", ":troop_amount", 0, -1),
+         (add_visitors_to_current_scene, ":start_point", "trp_rundashir_levelup", ":troop_amount", 0, -1),
+         (add_visitors_to_current_scene, ":start_point", "trp_quick_battle_troop_10", ":troop_amount", 0, -1),
+   ]), 
+   #daimyo script_dy_verify_tier_reset
+   # When deploying reinforcements, reset streak if in current tier
+   ("dy_verify_tier_reset",
+   [
+      #(store_script_param, ":player_no", 1),
+         #Possibly use in future for resetting consecutive if we add it back
+         #(assign, "$g_consecutive_quests_completed", 0),
+         (call_script, "script_dy_broadcast_team_reinforcements", 1),
+   ]),
+   
+   #daimyo script_dy_reset_streak_on_max
+   # Reset team quest streak on max hit
+   # ("dy_reset_streak_on_max",
+   # [
+   #    #(store_script_param, ":player_no", 1),
+   #    (try_begin), 
+   #       (assign, ":broadcast_reset", 0),
+   #       (try_begin),
+   #          (is_between, "$g_multiplayer_ccoop_wave_no", 1, 11),
+   #          (assign, "$g_max_streak", 7),
+   #          (try_begin),
+   #             (eq, "$g_consecutive_quests_completed", "$g_max_streak"),
+   #             (assign, "$g_current_tier_maxed", 1),
+   #          (try_end),
+   #          (gt, "$g_consecutive_quests_completed", "$g_max_streak"),
+   #          (assign, "$g_consecutive_quests_completed", 1),
+   #          (assign, ":broadcast_reset", 1),
+   #          (assign, reg0, 1),
+   #       (else_try),
+   #          (is_between, "$g_multiplayer_ccoop_wave_no", 11, 21),
+   #          (assign, "$g_max_streak", 5),
+   #          (try_begin),
+   #             (eq, "$g_consecutive_quests_completed", "$g_max_streak"),
+   #             (assign, "$g_current_tier_maxed", 1),
+   #          (try_end),
+   #          (gt, "$g_consecutive_quests_completed", "$g_max_streak"),
+   #          (assign, "$g_consecutive_quests_completed", 1), 
+   #          (assign, ":broadcast_reset", 1),
+   #          (assign, reg0, 2),
+   #       (else_try),
+   #          (is_between, "$g_multiplayer_ccoop_wave_no", 21, 31),
+   #          (assign, "$g_max_streak", 5),
+   #          (try_begin),
+   #             (eq, "$g_consecutive_quests_completed", "$g_max_streak"),
+   #             (assign, "$g_current_tier_maxed", 1),
+   #          (try_end),
+   #          (gt, "$g_consecutive_quests_completed", "$g_max_streak"),
+   #          (assign, "$g_consecutive_quests_completed", 1),
+   #          (assign, ":broadcast_reset", 1),
+   #          (assign, reg0, 3),
+   #       (try_end),
+   #       (eq, ":broadcast_reset", 1),
+   #       (str_store_string, s10, "str_tier_reg0_streak_maxed_and_reset"),
+   #       (get_max_players, ":num_players"), #Now broadcast
+   #       (try_for_range, ":player_no", 1, ":num_players"),
+   #          (player_is_active, ":player_no"),
+   #          (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+   #       (try_end), #TRY FOR RANGE END
+   #       (call_script, "script_dy_broadcast_team_reinforcements", 1),
+   #    (try_end),
+   # ]),
+
+
+   #daimyo script_dy_set_reinforcement_info
+   # SET Team Reinforcements INFO
+   ("dy_set_reinforcement_info",
+   [
+      #(store_script_param, ":player_no", 1),
+      (try_begin), 
+         
+         #(val_add, "$g_reinforcement_tier_3", 1),
+         #(gt, "$g_consecutive_quests_completed", 0), #Else no point
+         (call_script, "script_dy_broadcast_team_reinforcements", 1),
+      (try_end),
+   ]),
+
+   #daimyo script_dy_get_reinforcement_info
+   # Get Team Reinforcements INFO
+   # ("dy_get_reinforcement_info",
+   # [
+   #    #(store_script_param, ":player_no", 1),
+   #    (try_begin),
+   #       (try_begin),
+   #          (gt, "$g_reinforcement_tier_1", 1),
+   #          (try_begin),
+   #             (eq, "$g_reinforcement_tier_1", 2),
+   #             (str_store_string, s0, "str_reinforce_tier2"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_1", 3),
+   #             (str_store_string, s0, "str_reinforce_tier3"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_1", 4),
+   #             (str_store_string, s0, "str_reinforce_tier4"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_1", 5),
+   #             (str_store_string, s0, "str_reinforce_tier5"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_1", 6),
+   #             (str_store_string, s0, "str_reinforce_tier6"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_1", 7),
+   #             (str_store_string, s0, "str_reinforce_tier7"),
+   #          (try_end),
+   #       (else_try),
+   #          (str_store_string, s0, "str_reinforce_none"),
+   #       (try_end),
+
+   #       (try_begin),
+   #          (gt, "$g_reinforcement_tier_2", 1),
+   #          (try_begin),
+   #             (eq, "$g_reinforcement_tier_2", 2),
+   #             (str_store_string, s1, "str_reinforce_tier4"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_2", 3),
+   #             (str_store_string, s1, "str_reinforce_tier5"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_2", 4),
+   #             (str_store_string, s1, "str_reinforce_tier6"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_2", 5),
+   #             (str_store_string, s1, "str_reinforce_tier7"),
+   #          (try_end),
+   #       (else_try),
+   #          (str_store_string, s1, "str_reinforce_none"),
+   #       (try_end),
+
+   #       (try_begin),
+   #          (gt, "$g_reinforcement_tier_3", 1),
+   #          (try_begin),
+   #             (eq, "$g_reinforcement_tier_3", 2),
+   #             (str_store_string, s2, "str_reinforce_tier4"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_3", 3),
+   #             (str_store_string, s2, "str_reinforce_tier5"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_3", 4),
+   #             (str_store_string, s2, "str_reinforce_tier6"),
+   #          (else_try),
+   #             (eq, "$g_reinforcement_tier_3", 5),
+   #             (str_store_string, s2, "str_reinforce_tier7"),
+   #          (try_end),
+   #       (else_try),
+   #          (str_store_string, s2, "str_reinforce_none"),
+   #       (try_end),
+
+   #    (try_end),
+
+   # ]),
+
+   #daimyo script_dy_broadcast_team_reinforcements
+   # Broadcast Team Reinforcements
+   ("dy_broadcast_team_reinforcements",
+   [
+      (store_script_param, ":force_broadcast", 1),
+      (assign, reg0, "$g_reinforcement_tier_3"),
+      (str_store_string, s10, "str_reinforcements_reg0_earned_from"),
+      (try_begin),
+         (assign, ":expire_modulo1", -1),
+         (store_mod, ":expire_modulo1", "$g_multiplayer_ccoop_enemy_respawn_secs", 180),
+         (this_or_next|eq, ":expire_modulo1", 0),
+         (eq, ":force_broadcast", 1),
+         (assign, reg1, "$g_global_friendly_count"),
+         (assign, reg2, "$g_max_team_1_agents"),
+         (str_store_string, s23, "str_server_global_friendly_forces_reg1_out_of_reg2_remaining"),
+         (get_max_players, ":num_players"), #Now broadcast
+         (try_for_range, ":player_no", 1, ":num_players"),
+            (player_is_active, ":player_no"),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s23),
+         (try_end), #TRY FOR RANGE END
+      (try_end),
+      (try_begin),
+         (this_or_next|lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+         (eq, ":force_broadcast", 1),
+
+         (assign, ":expire_modulo2", -1),
+         (store_mod, ":expire_modulo2", "$g_multiplayer_ccoop_enemy_respawn_secs", 10),
+         (eq, ":expire_modulo2", 0),
+         #(call_script, "script_dy_get_reinforcement_info"), #s0, s1, s2 will be assigned automatically
+
+         (get_max_players, ":num_players"), #Now broadcast
+         (try_for_range, ":player_no", 1, ":num_players"),
+            (player_is_active, ":player_no"),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (try_end), #TRY FOR RANGE END
+      (try_end),
+
+   ]),
+   
+   #daimyo script_dy_broadcast_squad_size_specifics
+   # Broadcast Squad Size Specifics to Players
+   ("dy_broadcast_squad_size_specifics",
+   [
+      (store_script_param, ":player_no", 1),
+      (try_begin),
+         (lt, "$g_multiplayer_ccoop_enemy_respawn_secs", 31),
+         (assign, ":expire_modulo", -1),
+         (store_mod, ":expire_modulo", "$g_multiplayer_ccoop_enemy_respawn_secs", 10),
+         (eq, ":expire_modulo", 0),
+         (try_begin), #Broadcast changes
+            (player_is_active, ":player_no"),
+            (call_script, "script_dy_calculate_combat_gold"),
+            (assign, ":dy_bonus_gold", reg0),
+            (assign, reg1, ":dy_bonus_gold"),
+            (assign, reg0, "$g_multiplayer_squad_size"),
+            (str_store_string, s10, "str_server_global_squad_size_is_reg0_combat_gold_reg1"),
+            (multiplayer_send_string_to_player, ":player_no", multiplayer_event_show_server_message, s10),
+         (try_end),   
+      (try_end),
+   ]),
+
+  # script_check_if_agent_near_prop
+  # Check prop distance to player position
+  # Input: arg1 = agent_pos arg2 = prop_instances
+  # Output: none
+  ("check_if_agent_near_prop",
+   [
+     (store_script_param, ":agent_pos", 1),
+     (store_script_param, ":prop_instances", 2),
+     (store_script_param, ":wall_type", 3),
+     #(store_script_param, ":dist_offset", 4),
+     (try_begin),
+       (multiplayer_is_dedicated_server),
+            (assign, ":allowed_distance", 600),
+            (assign, ":return_pos", pos40),
+            (assign, ":return_distance", 1000),
+            (assign, ":agent_found_object", 0),
+            (try_for_range,":cur_instance",0,":prop_instances"),
+                (eq, ":agent_found_object", 0),
+                (scene_prop_get_instance, ":wall_id", ":wall_type", ":cur_instance"),
+                (prop_instance_get_position, pos40, ":wall_id"),
+                (get_sq_distance_between_positions, ":distance_between", pos40,":agent_pos"), #4m * 4m * 100 = 1600, 10m * 10m * 100 = 10000
+              
+                #(get_distance_between_positions_in_meters, ":distance_between", pos40, ":agent_pos"),
+                #(val_add, ":allowed_distance", ":dist_offset"),
+                (try_begin),
+                  (le, ":distance_between", ":allowed_distance"),
+                  (assign, ":prop_instances", 0),
+                  (assign, ":agent_found_object", 1),
+                  (assign, ":return_pos", pos40),
+                  (assign, ":return_distance", ":distance_between"),
+                (try_end),
+            (try_end),
+     (try_end),
+     (assign, reg49, ":return_pos"),
+     (assign, reg50, ":return_distance"),
+     #(assign, reg2, ":allowed_distance"),
+    ]),
 ]
 
+      

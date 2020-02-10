@@ -289,11 +289,11 @@ multi_num_valid_entry_points = 64
 multi_num_valid_entry_points_div_2 = 32
 
 #normal money management system
-multi_battle_round_team_money_add = 500
+multi_battle_round_team_money_add = 250
 multi_destroy_save_or_destroy_target_money_add = 100
 multi_destroy_target_money_add = 1500
-multi_initial_gold_value = 1000
-multi_max_gold_that_can_be_stored = 15000
+multi_initial_gold_value = 2000
+multi_max_gold_that_can_be_stored = 0
 
 multi_killer_agent_standard_money_add = 150 #(2/3 = 100 for battle & destroy, 3/3 = 150 for siege, 4/3 = 200 for deathmatch/team deathmatch/capture the flag/headquarters)
 multi_killer_agent_loot_percentage_share = 12 #(2/3 = 8% for battle & destroy, 3/3 = 12% for siege, 4/3 = 16% for deathmatch/team deathmatch/capture the flag/headquarters)

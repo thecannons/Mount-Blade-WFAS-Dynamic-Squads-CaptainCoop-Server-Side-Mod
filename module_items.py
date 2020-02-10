@@ -1647,7 +1647,7 @@ items = [
     (store_trigger_param_1, ":shooter_agent_no"),
 	(init_position, pos51),
 	(position_copy_origin, pos51, pos1), # Copy hit position for the script
-	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 210, 7), 
+	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 185, 7), 
   ])]],
 ["granata_medium", "Medium Grenade", [("bombaaa_m",0)], itp_type_thrown|itp_merchandise|itp_primary | itp_remove_item_on_use ,itcf_throw_stone,
  1400, weight(4)|difficulty(0)|spd_rtng(67) | shoot_speed(18) |thrust_damage(140,blunt)|max_ammo(5)|weapon_length(25),imodbits_none,
@@ -1656,7 +1656,7 @@ items = [
     (store_trigger_param_1, ":shooter_agent_no"),
 	(init_position, pos51),
 	(position_copy_origin, pos51, pos1), # Copy hit position for the script
-	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 150, 5), 
+	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 125, 6), 
   ])]],
 ["granata_small", "Small Grenade", [("bombaaa_s",0)], itp_type_thrown|itp_merchandise|itp_primary | itp_remove_item_on_use,itcf_throw_stone,
  1000, weight(4)|difficulty(0)|spd_rtng(70) | shoot_speed(20) |thrust_damage(100,blunt)|max_ammo(7)|weapon_length(20),imodbits_none,
@@ -1665,7 +1665,7 @@ items = [
     (store_trigger_param_1, ":shooter_agent_no"),
 	(init_position, pos51),
 	(position_copy_origin, pos51, pos1), # Copy hit position for the script
-	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 90, 3), 
+	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 65, 5), 
   ])]],
 
 ##================================================================
@@ -2204,7 +2204,7 @@ items = [
     (store_trigger_param_1, ":shooter_agent_no"),
 	(init_position, pos51),
 	(position_copy_origin, pos51, pos1), # Copy hit position for the script
-	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 60, 6), 
+	(call_script, "script_oim_deliver_granade_damage", ":shooter_agent_no", 35, 7), 
   ])]], 
 
 

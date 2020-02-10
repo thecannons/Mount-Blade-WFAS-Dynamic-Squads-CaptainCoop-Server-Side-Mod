@@ -1903,16 +1903,7 @@ presentations = [
 	  (else_try), 
 	    (eq, "$g_multiplayer_selected_map", "scn_mp_new_3"),
 		(assign, ":map_image", "mesh_mp_ui_host_maps_21"),
-      (else_try),
-        (this_or_next|eq, "$g_multiplayer_selected_map", "scn_random_multi_plain_medium"),
-        (eq, "$g_multiplayer_selected_map", "scn_random_multi_plain_large"),
-        (assign, ":map_image", "mesh_mp_ui_host_maps_randomp"),
-      (else_try),
-        (this_or_next|eq, "$g_multiplayer_selected_map", "scn_random_multi_steppe_medium"),
-        (eq, "$g_multiplayer_selected_map", "scn_random_multi_steppe_large"),
-        (assign, ":map_image", "mesh_mp_ui_host_maps_randoms"),
-      (else_try),
-        (assign, ":map_image", "mesh_mp_ui_host_maps_randomp"),
+    
       (try_end),
       
       (create_mesh_overlay, reg0, ":map_image"),
@@ -2209,8 +2200,8 @@ presentations = [
 		  # clamp max_num_players
 		  (try_begin),
 			(server_get_max_num_players, ":max_num_players"),
-			(gt, ":max_num_players", 8),
-			(multiplayer_send_int_to_server, multiplayer_event_admin_set_max_num_players, 8),
+			#(gt, ":max_num_players", 8),
+			(multiplayer_send_int_to_server, multiplayer_event_admin_set_max_num_players, 30),
 		  (try_end),
 		(else_try),
 		  (create_number_box_overlay, "$g_presentation_obj_admin_panel_21", 2, 65), # default range is [2,64]
