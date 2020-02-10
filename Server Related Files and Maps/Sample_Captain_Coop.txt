@@ -1,0 +1,115 @@
+#WARNING: Make sure that you change the capital values with proper ones.
+#uncomment the line below when you set a valid administrator password
+#if you have premium members, set a password for them, otherwise delete/comment out the line below
+#uncomment the line below when you set a valid private password
+#set_pass_private privatepass
+#set_pass testing
+#uncomment the line below when you set a valid server name
+set_server_name DynamicSquads_v4_2_Unofficial
+set_welcome_message Welcome to DynamicSquads_v4_2_Unofficial
+
+#Also you must use the Steam version of the dedicated server in order to use this option
+set_pass_admin changeme123
+#if the bottleneck is your server's bandwidth, then make sure that you set a correct value for upload limit (was 100000000)
+set_upload_limit 30000000
+set_enable_valve_anti_cheat 0
+#set_mission (multiplayer_ccoop) mode
+set_mission multiplayer_ccoop
+#setting max players, first one is non-premium member limit, second one is premium member limit
+set_max_players 30 30
+set_num_bots_voteable 0
+set_ban_voteable 0
+allow_changing_mission 1
+get_add_to_game_servers_list
+allow_granades 1 #allow or not to buy a granades
+set_control_block_direction 2
+set_combat_speed 1
+set_factions_voteable 1
+set_friendly_fire 0
+set_melee_friendly_fire 0
+set_friendly_fire_damage_friend_ratio 0
+set_friendly_fire_damage_self_ratio 0
+#set_combat_gold_bonus 50
+set_starting_gold 400
+#set_round_gold_bonus 100
+set_maps_voteable 1
+set_map_time_limit 10
+set_round_max_seconds 45             # time in seconds before items are removed; set the same value in module.ini for mission_object_prune_time
+set_force_default_armor 1
+set_valid_vote_ratio 70
+
+#set_map custom_map_1 #Nomad Camp
+#add_map custom_map_2 #A Castle in the Hills
+#add_map custom_map_3 #Monastery Fortress
+#add_map custom_map_4 #Vyborg
+#add_map custom_map_5 #Oreshek
+
+#set_map mp_steppefort
+#set_map mp_new_3 #Monastery Fortress
+#set_map mp_fakriye_castle
+set_map mp_new_1 #Pellenor_Redux
+add_map mp_new_2  #fortified town
+add_map mp_polya #Fields (Ratkas Beach with cart bug)
+add_map	mp_marketplace #The Hill
+add_map mp_old_castle #York Town
+add_map mp_hutor #Daimyo's Map
+add_map mp_hillroad #Stronghold
+add_map mp_swamp_delta #Oreshek
+add_map mp_edge_of_hell
+add_map	mp_smolensk
+add_map mp_forest_road #A Castle in the Hills
+add_map mp_crevasse
+add_map mp_new_2  #fortified town
+add_map mp_troy_invasion
+add_map mp_arena #D-Day
+add_map mp_bohus_fortress
+add_map mp_forest_edge #Vyborg
+#add_map mp_fakriye_castle
+add_map mp_polya #Fields (Ratkas Beach with cart bug)
+add_map mp_edge_of_hell
+add_map	mp_smolensk
+add_map mp_old_castle #York Town
+add_map mp_totalwar
+add_map mp_new_1 #Pellenor_Redux
+add_map mp_hutor #Daimyo's Map
+add_map	mp_marketplace #The Hill
+#add_map mp_fakriye_castle
+add_map mp_crevasse
+add_map mp_river_village # village by the river
+add_map mp_arena #D-Day
+add_map mp_troy_invasion
+add_map mp_forest_road #A Castle in the Hills
+add_map mp_hillroad #Stronghold
+add_map mp_edge
+add_map mp_river_fortress
+#add_map mp_intersburg
+
+
+
+#add_map mp_polya #Fields (Ratkas Beach with cart bug)
+#add_map random_multi_plain_medium
+#add_map random_multi_plain_large
+#add_map random_multi_steppe_medium
+#add_map random_multi_steppe_large
+#adding all kingdoms to both sides just to randomize all of them
+#adding less kingdoms will reduce the randomization set (used in set_randomize_factions command)
+add_factions fac_kingdom_1 fac_kingdom_1
+add_factions fac_kingdom_2 fac_kingdom_2
+add_factions fac_kingdom_3 fac_kingdom_3
+add_factions fac_kingdom_4 fac_kingdom_4
+add_factions fac_kingdom_5 fac_kingdom_5
+set_randomize_factions 1
+
+#fac_kingdom_1|Polish Commonwealth
+#fac_kingdom_2|Muscovite Tsardom
+#fac_kingdom_3|Crimean Khanate
+#fac_kingdom_4|Kingdom of Sweden
+#fac_kingdom_5|Cossack Hetmanate
+#if you are running more than one dedicated server on the same computer, you must give different ports to each of them
+set_port 1986 #why not.. avoid ddos
+#set_port 5454
+#if you are running the Steam version of the dedicated server, this port must also be set, and same limitations of set_port apply for Steam port
+set_steam_port 7241
+set_server_log_folder Logs
+set_server_ban_list_file Logs\ban_list.txt
+start
