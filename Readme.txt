@@ -35,7 +35,7 @@ So quick recap:
 Download official WFAS dedicated server files and extract somewhere
 Download and install Python, I use 2.7.6, setup windows path variable
 Download my custom module here, extract in a separate directory, configure the module_info.py to your dedicated server files "Ogniem i Mieczem" directory. Run build_module.bat
-Download WFAS Custom Maps.zip and extract into C:\Mount&Blade With Fire and Sword Dedicated\Modules\Ogniem i Mieczem
+Download WFAS Custom Maps.zip and extract into C:\Mount&Blade With Fire and Sword Dedicated\Modules\Ogniem i Mieczem\SceneObj
 Place sample Sample_Captain_Coop.txt and Sample_Captain_Coop_start.bat in main dedicated server files directory. Configure and run the Sample_Captain_Coop_start.bat
 
 
